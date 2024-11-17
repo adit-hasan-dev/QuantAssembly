@@ -1,4 +1,4 @@
-# Trading Bot
+# Quant Assembly
 
 ## Overview
 This personal project is a modular trading bot application designed to allow developers to define, test, and execute trading strategies with ease. The current implementation supports integration with the Interactive Brokers (IB) Gateway API for retrieving market data and executing trades, but it can be extended to support other data providers and execution platforms.
