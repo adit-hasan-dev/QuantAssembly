@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TradingBot", "TradingBot.csproj", "{C23C6FBD-5B46-4788-9EA0-E977B9F00C37}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuantAssembly", "QuantAssembly.csproj", "{C23C6FBD-5B46-4788-9EA0-E977B9F00C37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

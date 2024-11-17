@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using System.IO;
 
-namespace TradingBot.Config
+namespace QuantAssembly.Config
 {
     public class Config : IConfig
     {

@@ -1,4 +1,4 @@
-namespace TradingBot.Logging
+namespace QuantAssembly.Logging
 {
     public interface ILogger
     {

@@ -1,10 +1,10 @@
-namespace TradingBot.Impl.IBGW
+namespace QuantAssembly.Impl.IBGW
 {
     using System;
     using System.Collections.Generic;
     using IBApi;
-    using TradingBot.Logging;
-    using TradingBot.Models.Constants;
+    using QuantAssembly.Logging;
+    using QuantAssembly.Models.Constants;
 
     public class EWrapperImpl : EWrapper
     {

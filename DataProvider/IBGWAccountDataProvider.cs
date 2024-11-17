@@ -1,8 +1,8 @@
-using TradingBot.Impl.IBGW;
-using TradingBot.Logging;
-using TradingBot.Models;
+using QuantAssembly.Impl.IBGW;
+using QuantAssembly.Logging;
+using QuantAssembly.Models;
 
-namespace TradingBot.DataProvider
+namespace QuantAssembly.DataProvider
 {
     public class IBGWAccountDataProvider : IAccountDataProvider
     {

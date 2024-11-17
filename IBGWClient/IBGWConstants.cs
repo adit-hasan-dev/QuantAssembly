@@ -1,4 +1,4 @@
-namespace TradingBot.Impl.IBGW
+namespace QuantAssembly.Impl.IBGW
 {
     public class IBGWErrorCodes 
     {

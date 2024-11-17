@@ -1,4 +1,4 @@
-namespace TradingBot.Config
+namespace QuantAssembly.Config
 {
     public interface IConfig
     {

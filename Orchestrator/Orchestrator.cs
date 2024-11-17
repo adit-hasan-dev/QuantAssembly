@@ -1,9 +1,9 @@
-namespace TradingBot.Orchestratration
+namespace QuantAssembly.Orchestratration
 {
     using Newtonsoft.Json;
-    using TradingBot.Logging;
-    using TradingBot.Models;
-    using TradingBot.Strategy;
+    using QuantAssembly.Logging;
+    using QuantAssembly.Models;
+    using QuantAssembly.Strategy;
     public class Orchestrator
     {
         private Dictionary<string, Strategy> strategies = new Dictionary<string, Strategy>();

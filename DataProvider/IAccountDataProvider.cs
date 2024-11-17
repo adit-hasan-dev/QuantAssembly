@@ -1,6 +1,6 @@
-using TradingBot.Models;
+using QuantAssembly.Models;
 
-namespace TradingBot.DataProvider
+namespace QuantAssembly.DataProvider
 {
     public interface IAccountDataProvider
     {

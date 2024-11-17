@@ -1,4 +1,4 @@
-namespace TradingBot.Executor
+namespace QuantAssembly.Executor
 {
     using Models;
     public interface IExecutor

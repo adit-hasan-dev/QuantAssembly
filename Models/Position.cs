@@ -1,4 +1,4 @@
-namespace TradingBot.Models
+namespace QuantAssembly.Models
 {
     public enum PositionState
     {

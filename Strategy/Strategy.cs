@@ -1,4 +1,4 @@
-namespace TradingBot.Strategy
+namespace QuantAssembly.Strategy
 {
     public enum StrategyProperty
     {

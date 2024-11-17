@@ -1,10 +1,10 @@
-﻿using TradingBot.Config;
-using TradingBot.DataProvider;
-using TradingBot.Impl.IBGW;
-using TradingBot.Logging;
-using TradingBot.Orchestratration;
+﻿using QuantAssembly.Config;
+using QuantAssembly.DataProvider;
+using QuantAssembly.Impl.IBGW;
+using QuantAssembly.Logging;
+using QuantAssembly.Orchestratration;
 
-namespace TradingBot
+namespace QuantAssembly
 {
     public class Program
     {

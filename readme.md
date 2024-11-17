@@ -74,18 +74,40 @@ To get started with your own trading bot implementation, follow these steps:
 
 1. **Clone the Repository**: Clone the project repository from GitHub.
 2. **Install Dependencies**: Ensure you have the required dependencies, including `Newtonsoft.Json` for JSON parsing.
-3. **Define Strategies**: Create your trading strategies in JSON format and store them in a directory.
-4. **Load and Evaluate Strategies**: Use the `StrategyOrchestrator` to load and evaluate strategies.
+3. **Install IB Gateway**: Follow the steps below to install IB Gateway.
+   - **Create an IBKR Account**: If you don't already have an account, you need to create one. Follow the instructions on the [IBKR website](https://www.interactivebrokers.com/en/index.php?f=46345).
+   - **Download and Install IB Gateway**: Download the IB Gateway application from the [IBKR Software](https://www.interactivebrokers.com/en/index.php?f=5041) page. Follow the installation instructions provided.
+4. **Configure IB Gateway**:
+   - **Add Account ID**: Add your IBKR account ID to the `appsettings.json` file in the root of your project. 
+     ```json
+     {
+        "AccountId": "<your_account_id>",
+        "EnableDebugLog": "false",
+        "MaxPortfolioEngagement": 0.4,
+        "MaxSingleTradeAllocation": 0.1,
+        "GlobalStopLoss": 0.5,
+        "Tickers": [
+            "SPY",
+            "AAPL",
+            "GOOGL"
+        ]
+     }
+     ```
+5. **Define Strategies**: Create your trading strategies in JSON format and store them in a directory.
+6. **Load and Evaluate Strategies**: Use the `StrategyOrchestrator` to load and evaluate strategies.
+7. Ensure you have IB Gateway running when you launch the application.
+
+---
 
 Optionally, you can implement `IMarketDataProvider`, `IAccountDataProvider` and `IExecutor` to use other platforms, or a mixture of several.
 
 #### Example Code
 ```csharp
-using TradingBot.Config;
-using TradingBot.DataProvider;
-using TradingBot.Impl.IBGW;
-using TradingBot.Logging;
-using TradingBot.Orchestratration;
+using QuantAssembly.Config;
+using QuantAssembly.DataProvider;
+using QuantAssembly.Impl.IBGW;
+using QuantAssembly.Logging;
+using QuantAssembly.Orchestratration;
 
 public class Program
 {

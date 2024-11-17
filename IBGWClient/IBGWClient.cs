@@ -1,11 +1,11 @@
 using IBApi;
-using TradingBot.Logging;
-using TradingBot.Impl.IBGW;
-using TradingBot.Models.Constants;
-using TradingBot.Models;
+using QuantAssembly.Logging;
+using QuantAssembly.Impl.IBGW;
+using QuantAssembly.Models.Constants;
+using QuantAssembly.Models;
 //https://manga4life.com/read-online/Hanazono-Twins-chapter-11.html
 
-namespace TradingBot.Impl.IBGW
+namespace QuantAssembly.Impl.IBGW
 {
     public class IBGWClient : IDisposable
     {

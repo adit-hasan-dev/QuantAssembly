@@ -1,6 +1,6 @@
 using System;
 
-namespace TradingBot.Models;
+namespace QuantAssembly.Models;
 
 public abstract class ISignal
 {

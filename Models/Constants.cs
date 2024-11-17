@@ -1,4 +1,4 @@
-namespace TradingBot.Models.Constants
+namespace QuantAssembly.Models.Constants
 {
     public enum MarketDataType
     {
