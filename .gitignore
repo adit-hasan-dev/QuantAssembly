@@ -1,0 +1,144 @@
+# Ignore Visual Studio temporary files, build results, and
+# folder config.
+
+###################
+## Build Folders ##
+###################
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Tooling
+.vscode/
+.vscode-test/
+
+# Rider
+.idea/
+.idea/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
+.idea/shelf
+
+# User-specific files
+*.rsuser
+*.resharper
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# JetBrains Rider, JetBrains Space
+.idea
+*.sln.iml
+
+# Rider
+.idea/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
+.idea/shelf
+
+# User-specific files
+*.rsuser
+*.resharper
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Azure DevOps
+.terraform
+terraform.tfstate
+terraform.tfstate.*
+
+# Azure DevOps
+.tfstate
+
+# Azure DevOps
+@tfstate
+fstate*
+estates
+
+# Azure DevOps
+.templates/
+
+# User-specific files
+*.rsuser
+*.resharper
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+.vscode/
+.vscode-test/
+
+# Log Files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# DotNet specific
+
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# DotNet specific
+
+### Packages directory can be ignored to avoid restoring dependencies from local sources.
+### It's commented out as it's temporary.
+### Uncomment if you have a centralized location for dependencies.
+# packages/
+
+# Uncomment if you have a centralized location for dependencies.
+# packages/
+
+# Uncomment if you have a centralized location for dependencies.
+# packages/
+
+# Rider
+.idea/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
+.idea/shelf
+
+# User-specific files
+*.rsuser
+*.resharper
+
+# Rider
+.idea/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries
+.idea/libraries
+.idea/shelf
+
+# User-specific files
+*.rsuser
+*.resharper
