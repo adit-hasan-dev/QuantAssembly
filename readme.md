@@ -171,6 +171,11 @@ public class Program
 }
 ```
 
+## Future Improvements
+1. Support for options and futures
+2. Multi-leg trade strategies
+3. More sophisticated risk management functionality
+
 ## Conclusion
 This trading bot is still a work in progress. It is meant to provide a flexible and extensible framework for implementing automated trading strategies. The project includes an implementation for the IB Gateway API, but it should be straighforward to add implementations for other platforms. 
 

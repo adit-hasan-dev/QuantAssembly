@@ -7,6 +7,6 @@ namespace QuantAssembly.Config
         double MaxPortfolioEngagement { get; }
         double MaxSingleTradeAllocation { get; }
         double GlobalStopLoss { get; }
-        string[] Tickers { get; }
+        Dictionary<string, string> TickerStrategyMap { get; }
     }
 }
