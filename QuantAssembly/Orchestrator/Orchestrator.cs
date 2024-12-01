@@ -54,10 +54,20 @@ namespace QuantAssembly.Orchestratration
 
         private bool ValidateStrategy(Strategy strategy)
         {
-            bool IsValidCondition(StrategyCondition condition)
+            bool IsValidCondition(IStrategyCondition condition)
             {
-                return Enum.IsDefined(typeof(StrategyProperty), condition.Property) &&
-                       Enum.IsDefined(typeof(StrategyOperator), condition.Operator);
+                if (condition is PropertyToValueComparator valueComparator)
+                {
+                    return Enum.IsDefined(typeof(StrategyProperty), valueComparator.Property) &&
+                           Enum.IsDefined(typeof(StrategyOperator), valueComparator.Operator);
+                }
+                else if (condition is PropertyToPropertyComparator propertyComparator)
+                {
+                    return Enum.IsDefined(typeof(StrategyProperty), propertyComparator.LeftHandOperand) &&
+                           Enum.IsDefined(typeof(StrategyProperty), propertyComparator.RightHandOperand) &&
+                           Enum.IsDefined(typeof(StrategyOperator), propertyComparator.Operator);
+                }
+                return false;
             }
 
             bool IsValidConditionGroup(ConditionGroup group)
@@ -96,19 +106,36 @@ namespace QuantAssembly.Orchestratration
             return result;
         }
 
-        private bool EvaluateCondition(StrategyCondition condition, MarketData marketData)
+        private bool EvaluateCondition(IStrategyCondition condition, MarketData marketData)
         {
-            var propertyValue = GetPropertyValue(marketData, condition.Property);
-
-            return condition.Operator switch
+            if (condition is PropertyToValueComparator valueComparator)
             {
-                StrategyOperator.GreaterThan => propertyValue > condition.Value,
-                StrategyOperator.GreaterThanOrEqual => propertyValue >= condition.Value,
-                StrategyOperator.LessThan => propertyValue < condition.Value,
-                StrategyOperator.LessThanOrEqual => propertyValue <= condition.Value,
-                StrategyOperator.EqualTo => propertyValue == condition.Value,
-                _ => throw new InvalidOperationException("Invalid operator")
-            };
+                var propertyValue = GetPropertyValue(marketData, valueComparator.Property);
+                return valueComparator.Operator switch
+                {
+                    StrategyOperator.GreaterThan => propertyValue > valueComparator.Value,
+                    StrategyOperator.GreaterThanOrEqual => propertyValue >= valueComparator.Value,
+                    StrategyOperator.LessThan => propertyValue < valueComparator.Value,
+                    StrategyOperator.LessThanOrEqual => propertyValue <= valueComparator.Value,
+                    StrategyOperator.EqualTo => propertyValue == valueComparator.Value,
+                    _ => throw new InvalidOperationException("Invalid operator")
+                };
+            }
+            else if (condition is PropertyToPropertyComparator propertyComparator)
+            {
+                var leftValue = GetPropertyValue(marketData, propertyComparator.LeftHandOperand);
+                var rightValue = GetPropertyValue(marketData, propertyComparator.RightHandOperand);
+                return propertyComparator.Operator switch
+                {
+                    StrategyOperator.GreaterThan => leftValue > rightValue,
+                    StrategyOperator.GreaterThanOrEqual => leftValue >= rightValue,
+                    StrategyOperator.LessThan => leftValue < rightValue,
+                    StrategyOperator.LessThanOrEqual => leftValue <= rightValue,
+                    StrategyOperator.EqualTo => leftValue == rightValue,
+                    _ => throw new InvalidOperationException("Invalid operator")
+                };
+            }
+            throw new InvalidOperationException("Unknown condition type");
         }
 
         private double GetPropertyValue(MarketData marketData, StrategyProperty property)
@@ -126,5 +153,4 @@ namespace QuantAssembly.Orchestratration
             };
         }
     }
-
 }

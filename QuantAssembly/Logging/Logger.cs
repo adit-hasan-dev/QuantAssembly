@@ -56,7 +56,10 @@ namespace QuantAssembly.Logging
             lock (_logLock)
             {
                 Console.WriteLine(message);
-                File.AppendAllText(_logFile, message);
+                if (!string.IsNullOrEmpty(_logFile))
+                {
+                    File.AppendAllText(_logFile, message);
+                }
             }
         }
     }

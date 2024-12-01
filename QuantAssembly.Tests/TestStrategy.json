@@ -1,0 +1,50 @@
+{
+    "EntryConditions": {
+        "LogicalOperator": "AND",
+        "Conditions": [
+            {
+                "Property": "LatestPrice",
+                "Operator": "LessThan",
+                "Value": 50
+            },
+            {
+                "Property": "RSI",
+                "Operator": "GreaterThan",
+                "Value": 30
+            },
+            {
+                "Operator": "GreaterThanOrEqual",
+                "LeftHandOperand": "BidPrice",
+                "RightHandOperand": "AskPrice"
+            }
+        ]
+    },
+    "ExitConditions": {
+        "LogicalOperator": "OR",
+        "Conditions": [
+            {
+                "Property": "RSI",
+                "Operator": "LessThan",
+                "Value": 30
+            },
+            {
+                "Property": "SMA",
+                "Operator": "EqualTo",
+                "Value": 20
+            },
+            {
+                "Operator": "LessThan",
+                "LeftHandOperand": "Volume",
+                "RightHandOperand": "SMA"
+            }
+        ]
+    },
+    "StopLossConditions": {
+        "LogicalOperator": "AND",
+        "Conditions": []
+    },
+    "TakeProfitConditions": {
+        "LogicalOperator": "AND",
+        "Conditions": []
+    }
+}

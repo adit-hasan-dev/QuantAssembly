@@ -10,9 +10,8 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\client\CSharpAPI.csproj" />
+    <ProjectReference Include="..\..\client\CSharpAPI.csproj" />
   </ItemGroup>
   <ItemGroup>
   <None Update="appsettings.json">
@@ -21,7 +20,6 @@
 </ItemGroup>
 <ItemGroup>
     <!-- Include all files from the SourceDirectory -->
-    <None Include="Strategy\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Strategy\**\*.json" CopyToOutputDirectory="PreserveNewest" />
 </ItemGroup>
-
 </Project>
