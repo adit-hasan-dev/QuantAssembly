@@ -31,8 +31,13 @@ Note: Currently either AND or OR operators are supported within a single conditi
             },
             {
                 "Property": "RSI",
-                "Operator": "LessThan",
+                "Operator": "GreaterThan",
                 "Value": 30
+            },
+            {
+                "Operator": "GreaterThanOrEqual",
+                "LeftHandOperand": "BidPrice",
+                "RightHandOperand": "AskPrice"
             }
         ]
     },
@@ -41,30 +46,28 @@ Note: Currently either AND or OR operators are supported within a single conditi
         "Conditions": [
             {
                 "Property": "RSI",
-                "Operator": "GreaterThan",
-                "Value": 70
+                "Operator": "LessThan",
+                "Value": 30
+            },
+            {
+                "Property": "SMA",
+                "Operator": "EqualTo",
+                "Value": 20
+            },
+            {
+                "Operator": "LessThan",
+                "LeftHandOperand": "Volume",
+                "RightHandOperand": "SMA"
             }
         ]
     },
     "StopLossConditions": {
         "LogicalOperator": "AND",
-        "Conditions": [
-            {
-                "Property": "PercentageLoss",
-                "Operator": "GreaterThan",
-                "Value": 30
-            }
-        ]
+        "Conditions": []
     },
     "TakeProfitConditions": {
         "LogicalOperator": "AND",
-        "Conditions": [
-            {
-                "Property": "PercentageGain",
-                "Operator": "GreaterThanOrEqual",
-                "Value": 30
-            }
-        ]
+        "Conditions": []
     }
 }
 ```
