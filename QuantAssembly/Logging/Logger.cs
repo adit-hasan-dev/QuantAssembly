@@ -1,3 +1,5 @@
+using QuantAssembly.Config;
+
 namespace QuantAssembly.Logging
 {
     public class Logger : ILogger
@@ -9,15 +11,11 @@ namespace QuantAssembly.Logging
 
         private bool _isDebugEnabled = false;
 
-        public Logger(string logFile, string transactionLogFile)
+        public Logger(IConfig config)
         {
-            _logFile = logFile;
-            _transactionLogFile = transactionLogFile;
-        }
-
-        public void SetDebugToggle(bool isDebugEnabled)
-        {
-            _isDebugEnabled = isDebugEnabled;
+            _logFile = config.LogFilePath;
+            _transactionLogFile = config.TransactionLogFile;
+            _isDebugEnabled = config.EnableDebugLog;
         }
 
         public void LogInfo(string message)

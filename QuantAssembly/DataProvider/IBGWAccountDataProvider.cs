@@ -1,3 +1,4 @@
+using QuantAssembly.Config;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Logging;
 using QuantAssembly.Models;
@@ -12,12 +13,12 @@ namespace QuantAssembly.DataProvider
 
         private ILogger logger;
 
-        public IBGWAccountDataProvider(IBGWClient client, string accountId ,ILogger logger)
+        public IBGWAccountDataProvider(IBGWClient client, IConfig config ,ILogger logger)
         {
             this.logger = logger;
             this.iBGWClient = client;
             this.iBGWClient.AccountSummaryReceived += OnAccountSummaryReceived;
-            this.accountData = new AccountData { AccountID = accountId };
+            this.accountData = new AccountData { AccountID = config.AccountId };
         }
 
         public AccountData GetAccountData()

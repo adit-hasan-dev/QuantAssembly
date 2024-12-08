@@ -29,9 +29,14 @@ namespace QuantAssembly.DataProvider
             {
                 if (!tickerSymbolToIdMap.TryGetValue(ticker, out int requestId))
                 {
+                    logger.LogInfo($"Subscribing to market data for ticker: {ticker}");
                     requestId = NextRequestId++;
                     tickerSymbolToIdMap[ticker] = requestId;
                     ibgwClient.RequestMarketData(ticker, requestId);
+                }
+                else 
+                {
+                    logger.LogInfo($"Already subscribed to market data for ticker: {ticker}");
                 }
             }
         }

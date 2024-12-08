@@ -37,6 +37,9 @@ namespace QuantAssembly.Impl.IBGW
             this.eClientSocket = new EClientSocket(eWrapperImpl, signal);
             this.logger = logger;
             this.eWrapperImpl.clientSocket = this.eClientSocket;
+
+            // Connect to IB Gateway
+            Connect("127.0.0.1", 4002, 0);
         }
 
         public void Connect(string host, int port, int clientId, MarketDataType dataType = MarketDataType.Delayed)

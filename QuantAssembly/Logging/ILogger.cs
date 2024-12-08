@@ -7,7 +7,5 @@ namespace QuantAssembly.Logging
         void LogError(string message);
         void LogError(Exception exception);
         void LogTransaction(string message);
-
-        void SetDebugToggle(bool toggle);
     }
 }

@@ -8,8 +8,6 @@ namespace QuantAssembly.Ledger
         void ClosePosition(Position position);
         List<Position> GetOpenPositions();
         List<Position> GetClosedPositions();
-        void OpenLedger(string filePath);
-        void CloseLedger(string filePath);
     }
 }
 
