@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Impl.IBGW;
+using QuantAssembly.Impl.YahooFinance;
 using QuantAssembly.Ledger;
 using QuantAssembly.Logging;
 using QuantAssembly.Orchestratration;
@@ -80,6 +81,15 @@ namespace QuantAssembly
             .AddSingleton<IBGWClient>(provider => {
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWClient(logger);
+            })
+            .AddSingleton<YahooFinanceAPIClient>(provider => {
+                var logger = provider.GetRequiredService<ILogger>();
+                return new YahooFinanceAPIClient(logger);
+            })
+            .AddSingleton<IHistoricalMarketDataProvider, YahooHistoricalMarketDataProvider>(provider =>{
+                var logger = provider.GetRequiredService<ILogger>();
+                var yahooClient = provider.GetRequiredService<YahooFinanceAPIClient>();
+                return new YahooHistoricalMarketDataProvider(yahooClient, logger);
             })
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider => {
                 var client = provider.GetRequiredService<IBGWClient>();

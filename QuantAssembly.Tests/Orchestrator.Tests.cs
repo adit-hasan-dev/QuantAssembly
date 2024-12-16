@@ -14,8 +14,8 @@ namespace QuantAssembly.Tests
         [TestInitialize]
         public void Setup()
         {
-            logger = new Logger(null, null);
-            logger.SetDebugToggle(true);
+            var config = new Config.Config();
+            logger = new Logger(config);
             orchestrator = new Orchestrator(logger);
         }
 

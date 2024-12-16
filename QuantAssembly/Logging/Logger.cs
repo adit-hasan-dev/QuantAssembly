@@ -14,7 +14,7 @@ namespace QuantAssembly.Logging
         public Logger(IConfig config)
         {
             _logFile = config.LogFilePath;
-            _transactionLogFile = config.TransactionLogFile;
+            _transactionLogFile = config.TransactionFilePath;
             _isDebugEnabled = config.EnableDebugLog;
         }
 

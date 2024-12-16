@@ -86,14 +86,16 @@ To get started with your own trading bot implementation, follow these steps:
      {
         "AccountId": "<your_account_id>",
         "EnableDebugLog": "false",
+        "LogFilePath": "app.log",
+        "TransactionFilePath": "transaction.log",
         "MaxPortfolioEngagement": 0.4,
         "MaxSingleTradeAllocation": 0.1,
         "GlobalStopLoss": 0.5,
-        "Tickers": [
-            "SPY",
-            "AAPL",
-            "GOOGL"
-        ]
+        "Tickers": {
+            "SPY": "strategies/SPY_strategy.json",
+            "AAPL": "strategies/AAPL_strategy.json",
+            "GOOGL": "strategies/GOOGL_strategy.json"
+        }
      }
      ```
 5. **Define Strategies**: Create your trading strategies in JSON format and store them in a directory.

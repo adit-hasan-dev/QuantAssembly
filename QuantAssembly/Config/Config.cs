@@ -18,7 +18,7 @@ namespace QuantAssembly.Config
         public string AccountId => _config["AccountId"].ToString();
         public bool EnableDebugLog => _config["EnableDebugLog"].ToString().Contains("true");
         public string LogFilePath => _config["LogFilePath"].ToString();
-        public string TransactionLogFile => _config["TransactionLogFile"].ToString();
+        public string TransactionFilePath => _config["TransactionFilePath"].ToString();
         public double MaxPortfolioEngagement => (double)_config["MaxPortfolioEngagement"];
         public double MaxSingleTradeAllocation => (double)_config["MaxSingleTradeAllocation"];
         public double GlobalStopLoss => (double)_config["GlobalStopLoss"];
