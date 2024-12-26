@@ -1,0 +1,77 @@
+<FluentStack Orientation="Orientation.Vertical">
+    
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentCheckbox @bind-Value="showGuid">Position Guid</FluentCheckbox>
+        <FluentCheckbox @bind-Value="showInstrumentType">Instrument Type</FluentCheckbox>
+        <FluentCheckbox @bind-Value="showCurrency">Currency</FluentCheckbox>
+        <FluentCheckbox @bind-Value="showStrategyDefinition">Strategy Definition</FluentCheckbox>
+    </FluentStack>
+    
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentTextField @bind-Value="filterSymbol" Placeholder="Filter by Symbol" Width="200px" oninput="ApplyFilters" onkeydown="HandleKeyDown"/> 
+        <FluentTextField @bind-Value="filterState" Placeholder="Filter by State" Width="200px" onkeydown="HandleKeyDown"/> 
+        <FluentTextField @bind-Value="filterStrategyName" Placeholder="Filter by StrategyName" Width="200px" onkeydown="HandleKeyDown" /> 
+    </FluentStack>
+
+    <FluentDataGrid  Items="@FilteredPositions" ResizableColumns="true" ShowHover="true">
+        @if (showGuid)
+        {
+            <PropertyColumn Property="@(p => p.PositionGuid)"/>
+        }
+        <PropertyColumn Property="@(p => p.Symbol)" Sortable="true"/>
+        @if (showInstrumentType)
+        {
+            <PropertyColumn Property="@(p => p.InstrumentType)" Sortable="true"/>
+        }
+        <PropertyColumn Property="@(p => p.State)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.OpenTime)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.CloseTime)" Sortable="true"/>
+        @if (showCurrency)
+        {
+            <PropertyColumn Property="@(p => p.Currency)" Sortable="true"/>
+        }
+        <PropertyColumn Property="@(p => p.OpenPrice)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.ClosePrice)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.CurrentPrice)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.Quantity)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.ProfitOrLoss)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.StrategyName)" Sortable="true"/>
+        @if (showStrategyDefinition)
+        {
+            <PropertyColumn Property="@(p => p.StrategyDefinition)"/>
+        }
+    </FluentDataGrid>
+
+</FluentStack>
+
+@code {
+    [Parameter]
+    public IQueryable<Position> positions {get;set;}
+
+    bool showGuid = false;
+    bool showInstrumentType = false;
+    bool showCurrency = false;
+    bool showStrategyDefinition = false;
+
+    private string filterSymbol = string.Empty; 
+    private string filterState = string.Empty; 
+    private string filterStrategyName = string.Empty; 
+    private IQueryable<Position> FilteredPositions => positions
+        .Where(p => (string.IsNullOrEmpty(filterSymbol) || p.Symbol.Contains(filterSymbol, StringComparison.OrdinalIgnoreCase)) && 
+                    (string.IsNullOrEmpty(filterState) || p.State.Contains(filterState, StringComparison.OrdinalIgnoreCase)) && 
+                    (string.IsNullOrEmpty(filterStrategyName) || p.StrategyName.Contains(filterStrategyName, StringComparison.OrdinalIgnoreCase))).AsQueryable();
+
+    private void ApplyFilters() 
+    { 
+        // Trigger state update to apply filters 
+        StateHasChanged(); 
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e) 
+    { 
+        if (e.Key == "Enter") 
+        { 
+            ApplyFilters(); 
+        } 
+    }
+}

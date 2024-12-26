@@ -1,0 +1,18 @@
+@page "/dashboard"
+@using QuantAssembly.Dashboard.Components
+@inject LedgerService LedgerService
+
+<PageTitle>Dashboard</PageTitle>
+
+<FluentStack>
+    <PositionTable Positions="positions" />
+</FluentStack>
+
+@code {
+    private IQueryable<Position> positions;
+
+    protected override void OnInitialized()
+    {
+        positions = LedgerService.GetAllPositions();
+    }
+}

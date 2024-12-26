@@ -1,0 +1,35 @@
+@page "/"
+@layout LandingLayout
+@inject LedgerService LedgerService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Landing Page</PageTitle>
+
+<FluentStack HorizontalAlignment="HorizontalAlignment.Stretch" VerticalAlignment="VerticalAlignment.Center" Width="100%" Height="100%" Orientation="Orientation.Vertical" class="stack-container">
+    <FluentInputFile Id="my-file-uploader" Mode="InputFileMode.Stream"
+        Accept=".json"
+        OnFileUploaded="@onFileUploadedAsync" class="fluent-inputfile-container">
+        <ChildContent>
+            <label for="my-file-uploader">
+                <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+            </label>
+
+            <div>
+                Drag the ledger json file here,
+                or <label for="my-file-uploader">browse</label>
+                for them<span style="color: red;">*</span>.
+            </div>
+        </ChildContent>
+    </FluentInputFile>
+</FluentStack>
+
+@code {
+    async Task onFileUploadedAsync(FluentInputFileEventArgs file)
+    {
+        if (file.Size > 0)
+        {
+            await LedgerService.LoadLedgerFileAsync(file.Stream);
+            NavigationManager.NavigateTo("/dashboard");
+        }
+    }
+}
