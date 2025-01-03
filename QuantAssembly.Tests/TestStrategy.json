@@ -28,14 +28,14 @@
                 "Value": 30
             },
             {
-                "Property": "SMA",
+                "Property": "SMA_50",
                 "Operator": "EqualTo",
                 "Value": 20
             },
             {
                 "Operator": "LessThan",
-                "LeftHandOperand": "Volume",
-                "RightHandOperand": "SMA"
+                "LeftHandOperand": "SMA_200",
+                "RightHandOperand": "SMA_50"
             }
         ]
     },

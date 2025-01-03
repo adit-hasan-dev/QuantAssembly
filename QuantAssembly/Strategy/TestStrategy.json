@@ -1,16 +1,18 @@
 {
+    "Name": "MACD_RSI_Strategy",
+    "State": "Active",
     "EntryConditions": {
         "LogicalOperator": "AND",
         "Conditions": [
             {
-                "Property": "LatestPrice",
-                "Operator": "LessThan",
-                "Value": 50
+                "LeftHandOperand": "MACD",
+                "Operator": "GreaterThan",
+                "RightHandOperand": "SignalLine"
             },
             {
                 "Property": "RSI",
-                "Operator": "GreaterThan",
-                "Value": 30
+                "Operator": "LessThan",
+                "Value": 70
             }
         ]
     },
@@ -19,22 +21,29 @@
         "Conditions": [
             {
                 "Property": "RSI",
-                "Operator": "LessThan",
-                "Value": 30
-            },
-            {
-                "Property": "SMA",
-                "Operator": "EqualTo",
-                "Value": 20
+                "Operator": "GreaterThan",
+                "Value": 70
             }
         ]
     },
     "StopLossConditions": {
         "LogicalOperator": "AND",
-        "Conditions": []
+        "Conditions": [
+            {
+                "Property": "LossPercentage",
+                "Operator": "GreaterThan",
+                "Value": 5
+            }
+        ]
     },
     "TakeProfitConditions": {
         "LogicalOperator": "AND",
-        "Conditions": []
+        "Conditions": [
+            {
+                "Property": "ProfitPercentage",
+                "Operator": "GreaterThan",
+                "Value": 10
+            }
+        ]
     }
 }

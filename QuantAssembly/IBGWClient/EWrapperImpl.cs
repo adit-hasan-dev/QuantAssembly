@@ -115,14 +115,18 @@ namespace QuantAssembly.Impl.IBGW
             logger.LogInfo("Connection Closed");
         }
 
+        public event Action<int, ContractDetails> ContractDetailsReceived;
+
         public void contractDetails(int reqId, ContractDetails contractDetails)
         {
-            throw new NotImplementedException();
+            logger.LogDebug($"Contract details received for reqId {reqId}\n{contractDetails}");
+            ContractDetailsReceived?.Invoke(reqId, contractDetails);
         }
 
+        // No-op
         public void contractDetailsEnd(int reqId)
         {
-            throw new NotImplementedException();
+            return;
         }
 
         public void currentTime(long time)
@@ -155,6 +159,8 @@ namespace QuantAssembly.Impl.IBGW
             logger.LogError(str);
         }
 
+        public event Action<int, int, string, string> ErrorReceived;
+
         public void error(int id, int errorCode, string errorMsg, string advancedOrderRejectJson)
         {
             if (IBGWErrorCodes.NotificationErrorCodes.Contains(errorCode))
@@ -165,11 +171,16 @@ namespace QuantAssembly.Impl.IBGW
             {
                 logger.LogError($"Id: {id}, ErrorCode: {errorCode}, ErrorMessage: {errorMsg}, AdvancedOrderRejection: {advancedOrderRejectJson}");
             }
+            ErrorReceived?.Invoke(id, errorCode, errorMsg, advancedOrderRejectJson);
         }
 
+        public event Action<int, Contract, Execution> ExecDetailsReceived;
         public void execDetails(int reqId, Contract contract, Execution execution)
         {
-            throw new NotImplementedException();
+            var debugMessage = "ExecDetails. " + reqId + " - " + contract.Symbol + ", " + contract.SecType+", " + contract.Currency+" - " + execution.ExecId + ", " + Util.IntMaxString(execution.OrderId) + 
+                ", " + Util.DecimalMaxString(execution.Shares) + ", " + Util.DecimalMaxString(execution.CumQty) + ", " + execution.LastLiquidity + ", " + execution.Price;
+            logger.LogDebug($"[EWrapperImpl::execDetails] Exec details received: {debugMessage}");
+            ExecDetailsReceived?.Invoke(reqId, contract, execution);
         }
 
         public void execDetailsEnd(int reqId)
@@ -282,9 +293,14 @@ namespace QuantAssembly.Impl.IBGW
             throw new NotImplementedException();
         }
 
+        public event Action<int, string, decimal, decimal, double, int, int, double, int, string, double> OrderStatusReceived;
         public void orderStatus(int orderId, string status, decimal filled, decimal remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, string whyHeld, double mktCapPrice)
         {
-            throw new NotImplementedException();
+            string message = "OrderStatus. Id: " + orderId + ", Status: " + status + ", Filled: " + Util.DecimalMaxString(filled) + ", Remaining: " + Util.DecimalMaxString(remaining)
+                + ", AvgFillPrice: " + Util.DoubleMaxString(avgFillPrice) + ", PermId: " + Util.IntMaxString(permId) + ", ParentId: " + Util.IntMaxString(parentId) + 
+                ", LastFillPrice: " + Util.DoubleMaxString(lastFillPrice) + ", ClientId: " + Util.IntMaxString(clientId) + ", WhyHeld: " + whyHeld + ", MktCapPrice: " + Util.DoubleMaxString(mktCapPrice);
+            logger.LogDebug(message);
+            OrderStatusReceived?.Invoke(orderId, status, filled, remaining, avgFillPrice, permId, parentId, lastFillPrice, clientId, whyHeld, mktCapPrice);
         }
 
         public void pnl(int reqId, double dailyPnL, double unrealizedPnL, double realizedPnL)

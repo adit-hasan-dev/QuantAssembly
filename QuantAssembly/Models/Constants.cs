@@ -5,4 +5,25 @@ namespace QuantAssembly.Models.Constants
         RealTime,
         Delayed
     }
+
+    public enum InstrumentType
+    {
+        Stock,
+        OptionsContract,
+        Futures,
+        Cryptocurrency
+    }
+
+    public enum OrderType
+    {
+        Market,
+        Limit,
+        StopLimit
+    }
+
+    public enum OrderAction
+    {
+        Buy,
+        Sell
+    }
 }

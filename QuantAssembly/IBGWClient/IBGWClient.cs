@@ -3,11 +3,10 @@ using QuantAssembly.Logging;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Models.Constants;
 using QuantAssembly.Models;
-//https://manga4life.com/read-online/Hanazono-Twins-chapter-11.html
 
 namespace QuantAssembly.Impl.IBGW
 {
-    public class IBGWClient : IDisposable
+    public class IBGWClient : IIBGWClient, IDisposable
     {
         private readonly ILogger logger;
         private EWrapperImpl eWrapperImpl;
@@ -29,6 +28,7 @@ namespace QuantAssembly.Impl.IBGW
             add { eWrapperImpl.AccountSummaryReceived += value; }
             remove { eWrapperImpl.AccountSummaryReceived -= value; }
         }
+
 
         public IBGWClient(ILogger logger)
         {
@@ -69,30 +69,164 @@ namespace QuantAssembly.Impl.IBGW
         }
 
         // TODO: Make this a generic method for all financial instruments
-        public void RequestMarketData(string ticker, int requestId)
+        public async Task<MarketData> RequestMarketDataAsync(string ticker, int requestId, string instrumentType = "STK", string currency = "USD")
         {
             if (!IsConnected)
                 throw new InvalidOperationException("Not connected to IB Gateway");
 
+            logger.LogInfo($"[IBGWClient::RequestMarketDataAsync] Requesting market data for {ticker}, request ID: {requestId}");
+
+            var tcs = new TaskCompletionSource<MarketData>();
+            var marketData = new MarketData
+            {
+                Symbol = ticker,
+                BidPrice = -10,
+                LatestPrice = -10,
+                AskPrice = -10
+            };
+
+            MarketDataEventHandler eventHandler = new MarketDataEventHandler(
+                requestId,
+                marketData,
+                tcs,
+                eWrapperImpl,
+                eClientSocket);
+
+            eWrapperImpl.TickPriceReceived += eventHandler.TickPriceReceivedHandler;
+
             var contract = new Contract
             {
                 Symbol = ticker,
-                SecType = "STK",
+                SecType = instrumentType,
                 Exchange = "SMART",
-                Currency = "USD"
+                Currency = currency,
             };
-            logger.LogInfo($"[IBGWClient] Requesting market data for {ticker}, request ID: {requestId}");
             eClientSocket.reqMktData(requestId, contract, "", false, false, null);
+
+            return await tcs.Task;
         }
 
-        public void RequestAccountSummary()
+        public async Task<AccountData> RequestAccountSummaryAsync(string accountId)
         {
-            if (!IsConnected) 
-                throw new InvalidOperationException("Not connected to IB Gateway"); 
-            
-            // Request account summary 
+            if (!IsConnected)
+                throw new InvalidOperationException("Not connected to IB Gateway");
+
+            var tcs = new TaskCompletionSource<AccountData>();
+            var accountData = new AccountData
+            {
+                AccountID = accountId,
+                TotalPortfolioValue = -10,
+                Liquidity = -10,
+                Equity = -10
+            };
+
+            AccountDataEventHandler eventHandler = new AccountDataEventHandler(
+                accountData,
+                tcs,
+                eWrapperImpl,
+                eClientSocket);
+
+            eWrapperImpl.AccountSummaryReceived += eventHandler.AccountSummaryReceivedHandler;
+
             logger.LogInfo($"[IBGWClient] Requesting account summary");
             eClientSocket.reqAccountSummary(1, "All", "NetLiquidation,TotalCashValue,GrossPositionValue");
+
+            return await tcs.Task;
+        }
+
+        public async Task<TransactionResult> PlaceOrder(Position position, OrderType orderType, OrderAction action)
+        {
+            if (!IsConnected)
+                throw new InvalidOperationException("Not connected to IB Gateway");
+
+            var tcs = new TaskCompletionSource<TransactionResult>();
+
+            var ibOrderId = eWrapperImpl.NextOrderId++;
+            position.PlatformOrderId = ibOrderId.ToString();
+
+            var contract = new Contract
+            {
+                Symbol = position.Symbol,
+                SecType = position.InstrumentType == InstrumentType.Stock ? "STK" : "Error",
+                Exchange = "SMART",
+                Currency = position.Currency,
+            };
+            var order = GenerateOrder(position, orderType, action);
+
+            var result = new TransactionResult
+            {
+                OrderId = ibOrderId.ToString(),
+                TransactionState = TransactionState.Pending
+            };
+
+            OrderEventHandler eventHandler = new OrderEventHandler(
+                ibOrderId,
+                position,
+                logger,
+                result,
+                tcs,
+                eWrapperImpl,
+                eClientSocket
+            );
+
+            eWrapperImpl.ErrorReceived += eventHandler.ErrorEventHandler;
+            eWrapperImpl.OrderStatusReceived += eventHandler.OrderStatusHandler;
+            eWrapperImpl.ExecDetailsReceived += eventHandler.ExecDetailsHandler;
+
+            logger.LogInfo($"[IBGWClient::PlaceOrder] Placing order to {action} with type: {orderType} for position:\n {position}");
+            eClientSocket.placeOrder(ibOrderId, contract, order);
+            return await tcs.Task;
+        }
+
+        public async Task<ContractDetails> GetSymbolContractDetailsAsync(string symbol, InstrumentType instrumentType = InstrumentType.Stock, string currency = "USD")
+        {
+            if (!IsConnected)
+                throw new InvalidOperationException("Not connected to IB Gateway");
+
+            var ibOrderId = eWrapperImpl.NextOrderId++;
+            var tcs = new TaskCompletionSource<ContractDetails>();
+            var contract = GenerateSymbolContract(symbol, instrumentType, currency);
+            var handler = new ContractDetailsEventHandler(symbol, tcs, eWrapperImpl, eClientSocket);
+            eWrapperImpl.ContractDetailsReceived += handler.ContractDetailsReceivedHandler;
+
+            logger.LogInfo($"Requesting contract details for symbol: {symbol}");
+            eClientSocket.reqContractDetails(ibOrderId, contract);
+            return await tcs.Task;
+        }
+
+        private Contract GenerateSymbolContract(string symbol, InstrumentType instrumentType, string currency = "USD")
+        {
+            // TODO: Support mutliple intrument types
+            return new Contract
+            {
+                Symbol = symbol,
+                SecType = instrumentType == InstrumentType.Stock ? "STK" : "Error",
+                Exchange = "SMART",
+                Currency = currency,
+            };
+        }
+
+        private Order GenerateOrder(Position position, OrderType orderType, OrderAction action)
+        {
+            var order = new Order
+            {
+                Action = action == OrderAction.Buy ? "BUY" : "SELL",
+                TotalQuantity = position.Quantity,
+                OrderRef = position.PositionGuid.ToString()
+            };
+            switch (orderType)
+            {
+                case OrderType.Market:
+                    order.OrderType = "MKT";
+                    break;
+                case OrderType.Limit:
+                    order.OrderType = "LMT";
+                    order.LmtPrice = position.CurrentPrice;
+                    break;
+                default:
+                    throw new NotImplementedException("Only market orders and stop limit order types are supported for now");
+            }
+            return order;
         }
 
         public void Disconnect()

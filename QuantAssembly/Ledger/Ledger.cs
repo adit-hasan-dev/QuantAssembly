@@ -9,9 +9,7 @@ namespace QuantAssembly.Ledger
 
     public class Ledger : ILedger, IDisposable
     {
-        private List<Position> openPositions = new List<Position>();
-        private List<Position> closedPositions = new List<Position>();
-
+        private List<Position> positions = new List<Position>();
         private string filePath;
         private ILogger logger;
         private bool disposed = false;
@@ -28,43 +26,60 @@ namespace QuantAssembly.Ledger
                 throw new FileNotFoundException(errorMessage);
             }
 
-            var ledgerData = JsonConvert.DeserializeObject<LedgerData>(File.ReadAllText(filePath));
-            openPositions = ledgerData.OpenPositions ?? new List<Position>();
-            closedPositions = ledgerData.ClosedPositions ?? new List<Position>();
+            string fileContent = File.ReadAllText(filePath);
+            LedgerData ledgerData;
+
+            if (string.IsNullOrWhiteSpace(fileContent))
+            {
+                this.logger.LogInfo($"[Ledger] Ledger file is empty. Initializing with an empty ledger.");
+                ledgerData = new LedgerData { Positions = new List<Position>() };
+            }
+            else
+            {
+                ledgerData = JsonConvert.DeserializeObject<LedgerData>(fileContent);
+            }
+
+            positions = ledgerData?.Positions ?? new List<Position>();
             this.logger.LogInfo($"[Ledger] Initialized ledger with file path: {filePath}");
         }
 
+
         public void AddOpenPosition(Position position)
         {
-            openPositions.Add(position);
+            positions.Add(position);
+            SaveLedger();
         }
 
         public void ClosePosition(Position position)
         {
-            position.positionState = PositionState.Closed;
-            openPositions.Remove(position);
-            closedPositions.Add(position);
+            position.State = PositionState.Closed;
+            SaveLedger();
         }
 
         public List<Position> GetOpenPositions()
         {
-            return openPositions;
+            return positions.Where(p => p.State == PositionState.Open).ToList();
         }
 
         public List<Position> GetClosedPositions()
         {
-            return closedPositions;
+            return positions.Where(p => p.State == PositionState.Closed).ToList();
         }
 
         public void CloseLedger()
         {
-            var ledgerData = new
+            SaveLedger();
+            this.logger.LogInfo($"[Ledger] Closed ledger with file path: {filePath}");
+        }
+
+        private void SaveLedger()
+        {
+            var ledgerData = new LedgerData
             {
-                OpenPositions = openPositions,
-                ClosedPositions = closedPositions
+                Positions = positions
             };
             File.WriteAllText(filePath, JsonConvert.SerializeObject(ledgerData));
-            this.logger.LogInfo($"[Ledger] Closed ledger with file path: {filePath}");
+            this.logger.LogInfo($"[Ledger] Saved ledger with file path: {filePath}");
         }
 
         protected virtual void Dispose(bool disposing)
@@ -94,8 +109,8 @@ namespace QuantAssembly.Ledger
 
         private class LedgerData
         {
-            public List<Position> OpenPositions { get; set; }
-            public List<Position> ClosedPositions { get; set; }
+            public List<Position> Positions { get; set; }
         }
     }
+
 }

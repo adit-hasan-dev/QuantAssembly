@@ -5,18 +5,19 @@ namespace QuantAssembly.Logging
     public class Logger : ILogger
     {
         private readonly string _logFile;
-        private readonly string _transactionLogFile;
         private static readonly object _logLock = new object();
-        private static readonly object _transactionLogLock = new object();
 
         private bool _isDebugEnabled = false;
+        private bool isDevEnv = false;
 
-        public Logger(IConfig config)
+        public Logger(IConfig config, bool isDevEnv = false)
         {
-            _logFile = config.LogFilePath;
-            _transactionLogFile = config.TransactionLogFile;
+            var dateSuffix = DateTime.Now.ToString("yyyyMMdd");
+            _logFile = $"{config.LogFilePath}_{dateSuffix}.log";
             _isDebugEnabled = config.EnableDebugLog;
+            this.isDevEnv = isDevEnv;
         }
+
 
         public void LogInfo(string message)
         {
@@ -41,20 +42,12 @@ namespace QuantAssembly.Logging
             _log($"{DateTime.Now}: Exception: {exception.Message}, StackTrace: {exception.StackTrace}");
         }
 
-        public void LogTransaction(string message)
-        {
-            lock (_transactionLogLock)
-            {
-                File.AppendAllText(_transactionLogFile, $"{DateTime.Now}: TRANSACTION: {message}\n");
-            }
-        }
-
         private void _log(string message)
         {
             lock (_logLock)
             {
                 Console.WriteLine(message);
-                if (!string.IsNullOrEmpty(_logFile))
+                if (!isDevEnv && !string.IsNullOrEmpty(_logFile))
                 {
                     File.AppendAllText(_logFile, message);
                 }

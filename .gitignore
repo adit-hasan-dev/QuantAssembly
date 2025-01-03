@@ -104,6 +104,8 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+appsettings.json
+
 # DotNet specific
 
 ### Packages directory can be ignored to avoid restoring dependencies from local sources.
