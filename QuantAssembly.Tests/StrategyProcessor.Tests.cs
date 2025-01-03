@@ -1,22 +1,22 @@
 using Newtonsoft.Json;
 using QuantAssembly.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Orchestratration;
+using QuantAssembly.Strategy;
 
 namespace QuantAssembly.Tests
 {
     [TestClass]
-    public class OrchestratorTests
+    public class StrategyProcessorTests
     {
-        private Orchestrator orchestrator;
+        private StrategyProcessor strategyProcessor;
         private ILogger logger;
 
         [TestInitialize]
         public void Setup()
         {
-            logger = new Logger(null, null);
-            logger.SetDebugToggle(true);
-            orchestrator = new Orchestrator(logger);
+            var config = new Config.Config();
+            logger = new Logger(config);
+            strategyProcessor = new StrategyProcessor(logger);
         }
 
         [TestMethod]
@@ -75,16 +75,20 @@ namespace QuantAssembly.Tests
             string filePath = "AAPL_strategy.json";
             File.WriteAllText(filePath, strategyJson);
 
-            orchestrator.LoadStrategy(stockTicker, filePath);
+            strategyProcessor.LoadStrategyFromContent(stockTicker, strategyJson);
 
             MarketData marketData = new MarketData
             {
                 LatestPrice = 120,
+                BidPrice = 95,
+                AskPrice = 155
+            };
+
+            HistoricalMarketData histData = new HistoricalMarketData
+            {
                 MACD = 1.5,
                 Signal = 2.0,
                 RSI = 60,
-                BidPrice = 95,
-                AskPrice = 155
             };
 
             var accountData = new AccountData
@@ -96,7 +100,7 @@ namespace QuantAssembly.Tests
             };
 
             // Act
-            bool result = orchestrator.ShouldOpen(marketData, accountData, stockTicker);
+            bool result = strategyProcessor.ShouldOpen(marketData, accountData, histData, stockTicker);
 
             // Assert
             Assert.IsTrue(result);
@@ -107,67 +111,89 @@ namespace QuantAssembly.Tests
         {
             // Arrange
             string strategyJson = @"
-            {
-                ""EntryConditions"": {
-                    ""LogicalOperator"": ""AND"",
-                    ""Conditions"": [
-                        {
-                            ""Property"": ""LatestPrice"",
-                            ""Operator"": ""GreaterThan"",
-                            ""Value"": 100
-                        },
-                        {
-                            ""Operator"": ""LessThan"",
-                            ""LeftHandOperand"": ""MACD"",
-                            ""RightHandOperand"": ""SignalLine""
-                        }
-                    ]
+    {
+        ""EntryConditions"": {
+            ""LogicalOperator"": ""AND"",
+            ""Conditions"": [
+                {
+                    ""Property"": ""LatestPrice"",
+                    ""Operator"": ""GreaterThan"",
+                    ""Value"": 100
                 },
-                ""ExitConditions"": {
-                    ""LogicalOperator"": ""OR"",
-                    ""Conditions"": [
-                        {
-                            ""Property"": ""RSI"",
-                            ""Operator"": ""GreaterThan"",
-                            ""Value"": 70
-                        }
-                    ]
-                },
-                ""StopLossConditions"": {
-                    ""LogicalOperator"": ""AND"",
-                    ""Conditions"": [
-                        {
-                            ""Property"": ""BidPrice"",
-                            ""Operator"": ""LessThan"",
-                            ""Value"": 90
-                        }
-                    ]
-                },
-                ""TakeProfitConditions"": {
-                    ""LogicalOperator"": ""OR"",
-                    ""Conditions"": [
-                        {
-                            ""Property"": ""AskPrice"",
-                            ""Operator"": ""GreaterThan"",
-                            ""Value"": 150
-                        }
-                    ]
+                {
+                    ""Operator"": ""LessThan"",
+                    ""LeftHandOperand"": ""MACD"",
+                    ""RightHandOperand"": ""SignalLine""
                 }
-            }";
+            ]
+        },
+        ""ExitConditions"": {
+            ""LogicalOperator"": ""OR"",
+            ""Conditions"": [
+                {
+                    ""Property"": ""RSI"",
+                    ""Operator"": ""GreaterThan"",
+                    ""Value"": 70
+                },
+                {
+                    ""Property"": ""LossPercentage"",
+                    ""Operator"": ""GreaterThan"",
+                    ""Value"": 5
+                },
+                {
+                    ""Property"": ""ProfitPercentage"",
+                    ""Operator"": ""GreaterThan"",
+                    ""Value"": 10
+                }
+            ]
+        },
+        ""StopLossConditions"": {
+            ""LogicalOperator"": ""AND"",
+            ""Conditions"": [
+                {
+                    ""Property"": ""BidPrice"",
+                    ""Operator"": ""LessThan"",
+                    ""Value"": 90
+                }
+            ]
+        },
+        ""TakeProfitConditions"": {
+            ""LogicalOperator"": ""OR"",
+            ""Conditions"": [
+                {
+                    ""Property"": ""AskPrice"",
+                    ""Operator"": ""GreaterThan"",
+                    ""Value"": 150
+                }
+            ]
+        }
+    }";
             string stockTicker = "AAPL";
-            string filePath = "AAPL_strategy.json";
-            File.WriteAllText(filePath, strategyJson);
 
-            orchestrator.LoadStrategy(stockTicker, filePath);
+            strategyProcessor.LoadStrategyFromContent(stockTicker, strategyJson);
+
+            // Set valid open and current prices to calculate profit/loss
+            Position position = new Position
+            {
+                PositionGuid = Guid.NewGuid(),
+                Symbol = stockTicker,
+                OpenPrice = 100, // Assume the open price is 100
+                CurrentPrice = 110, // Assume the current price is 110 to calculate profit
+                Quantity = 10
+            };
 
             MarketData marketData = new MarketData
             {
                 LatestPrice = 80,
+                BidPrice = 85,
+                AskPrice = 155
+            };
+
+            HistoricalMarketData histData = new HistoricalMarketData
+            {
                 MACD = 1.5,
                 Signal = 2.0,
                 RSI = 75,
-                BidPrice = 85,
-                AskPrice = 155
             };
 
             var accountData = new AccountData
@@ -179,11 +205,12 @@ namespace QuantAssembly.Tests
             };
 
             // Act
-            bool result = orchestrator.ShouldClose(marketData, accountData, stockTicker);
+            bool result = strategyProcessor.ShouldClose(marketData, accountData, histData, position);
 
             // Assert
             Assert.IsTrue(result);
         }
+
 
         [TestMethod]
         [ExpectedException(typeof(JsonSerializationException))]
@@ -216,11 +243,9 @@ namespace QuantAssembly.Tests
                 }
             }";
             string stockTicker = "AAPL";
-            string filePath = "AAPL_strategy.json";
-            File.WriteAllText(filePath, strategyJson);
 
             // Act
-            orchestrator.LoadStrategy(stockTicker, filePath);
+            strategyProcessor.LoadStrategyFromContent(stockTicker, strategyJson);
 
             // Assert: Expects an InvalidOperationException to be thrown
         }

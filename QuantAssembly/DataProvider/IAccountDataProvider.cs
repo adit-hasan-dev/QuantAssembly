@@ -4,6 +4,6 @@ namespace QuantAssembly.DataProvider
 {
     public interface IAccountDataProvider
     {
-        AccountData GetAccountData();
+        Task<AccountData> GetAccountDataAsync(string accountId);
     }
 }

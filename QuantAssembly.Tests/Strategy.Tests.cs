@@ -56,14 +56,14 @@ namespace QuantAssembly.Tests
             Assert.AreEqual(30, exitCondition1.Value);
 
             var exitCondition2 = (PropertyToValueComparator)strategy.ExitConditions.Conditions[1];
-            Assert.AreEqual(StrategyProperty.SMA, exitCondition2.Property);
+            Assert.AreEqual(StrategyProperty.SMA_50, exitCondition2.Property);
             Assert.AreEqual(StrategyOperator.EqualTo, exitCondition2.Operator);
             Assert.AreEqual(20, exitCondition2.Value);
 
             var exitCondition3 = (PropertyToPropertyComparator)strategy.ExitConditions.Conditions[2];
-            Assert.AreEqual(StrategyProperty.Volume, exitCondition3.LeftHandOperand);
             Assert.AreEqual(StrategyOperator.LessThan, exitCondition3.Operator);
-            Assert.AreEqual(StrategyProperty.SMA, exitCondition3.RightHandOperand);
+            Assert.AreEqual(StrategyProperty.SMA_50, exitCondition3.RightHandOperand);
+            Assert.AreEqual(StrategyProperty.SMA_200, exitCondition3.LeftHandOperand);
 
             // StopLossConditions and TakeProfitConditions
             Assert.AreEqual(LogicalOperator.AND, strategy.StopLossConditions.LogicalOperator);

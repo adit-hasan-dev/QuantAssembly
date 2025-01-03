@@ -11,8 +11,16 @@ namespace QuantAssembly.Strategy
         MACD,
         SignalLine,
         RSI,
-        SMA,
-        Volume
+        SMA_50,
+        SMA_200,
+        EMA_50,
+        Upper_Band,
+        Lower_Band,
+        ATR,
+        HistoricalHigh,
+        HistoricalLow,
+        ProfitPercentage,
+        LossPercentage
     }
 
     public enum StrategyOperator
@@ -29,6 +37,14 @@ namespace QuantAssembly.Strategy
         AND,
         OR
     }
+
+    public enum StrategyState
+    {
+        Active,     // Both buy and sell signals are processed
+        SellOnly,   // Only sell signals are processed, ignore buy signals
+        Halted      // No signals are processed
+    }
+
 
     public interface IStrategyCondition
     {
@@ -122,6 +138,8 @@ namespace QuantAssembly.Strategy
 
     public class Strategy
     {
+        public string Name { get; set;}
+        public StrategyState State { get; set;} = StrategyState.Halted;
         public ConditionGroup EntryConditions { get; set; }
         public ConditionGroup ExitConditions { get; set; }
         public ConditionGroup StopLossConditions { get; set; }
