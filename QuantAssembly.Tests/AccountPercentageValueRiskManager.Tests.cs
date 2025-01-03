@@ -41,16 +41,9 @@ namespace TradingApp.Tests
     {
         public void LogInfo(string message) => System.Diagnostics.Debug.WriteLine(message);
         public void LogError(string message) => System.Diagnostics.Debug.WriteLine(message);
-
-        public void LogDebug(string message)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void LogError(Exception exception)
-        {
-            throw new NotImplementedException();
-        }
+        public void LogDebug(string message) => System.Diagnostics.Debug.WriteLine(message);
+        public void LogError(Exception exception) => System.Diagnostics.Debug.WriteLine(exception.Message);
+        public void LogWarn(string message) => System.Diagnostics.Debug.WriteLine(message);
     }
 
     [TestClass]

@@ -16,6 +16,8 @@ namespace QuantAssembly.Impl.IBGW
         private EReader eReader;
         public bool IsConnected { get; private set; }
         private bool disposed;
+        private int nextValidRequestId = 0;
+
 
         public event Action<int, int, double, int> TickPriceReceived
         {
@@ -69,11 +71,12 @@ namespace QuantAssembly.Impl.IBGW
         }
 
         // TODO: Make this a generic method for all financial instruments
-        public async Task<MarketData> RequestMarketDataAsync(string ticker, int requestId, string instrumentType = "STK", string currency = "USD")
+        public async Task<MarketData> RequestMarketDataAsync(string ticker, string instrumentType = "STK", string currency = "USD")
         {
             if (!IsConnected)
                 throw new InvalidOperationException("Not connected to IB Gateway");
 
+            int requestId = nextValidRequestId++;
             logger.LogInfo($"[IBGWClient::RequestMarketDataAsync] Requesting market data for {ticker}, request ID: {requestId}");
 
             var tcs = new TaskCompletionSource<MarketData>();
@@ -90,9 +93,11 @@ namespace QuantAssembly.Impl.IBGW
                 marketData,
                 tcs,
                 eWrapperImpl,
-                eClientSocket);
+                eClientSocket,
+                logger);
 
             eWrapperImpl.TickPriceReceived += eventHandler.TickPriceReceivedHandler;
+            eWrapperImpl.ErrorReceived += eventHandler.ErrorReceivedHandler;
 
             var contract = new Contract
             {
@@ -111,6 +116,8 @@ namespace QuantAssembly.Impl.IBGW
             if (!IsConnected)
                 throw new InvalidOperationException("Not connected to IB Gateway");
 
+            int requestId = nextValidRequestId++;
+
             var tcs = new TaskCompletionSource<AccountData>();
             var accountData = new AccountData
             {
@@ -121,15 +128,17 @@ namespace QuantAssembly.Impl.IBGW
             };
 
             AccountDataEventHandler eventHandler = new AccountDataEventHandler(
+                requestId,
                 accountData,
                 tcs,
                 eWrapperImpl,
-                eClientSocket);
+                eClientSocket,
+                logger);
 
             eWrapperImpl.AccountSummaryReceived += eventHandler.AccountSummaryReceivedHandler;
-
+            eWrapperImpl.ErrorReceived += eventHandler.ErrorReceivedHandler;
             logger.LogInfo($"[IBGWClient] Requesting account summary");
-            eClientSocket.reqAccountSummary(1, "All", "NetLiquidation,TotalCashValue,GrossPositionValue");
+            eClientSocket.reqAccountSummary(requestId, "All", "NetLiquidation,TotalCashValue,GrossPositionValue");
 
             return await tcs.Task;
         }
@@ -169,7 +178,7 @@ namespace QuantAssembly.Impl.IBGW
                 eClientSocket
             );
 
-            eWrapperImpl.ErrorReceived += eventHandler.ErrorEventHandler;
+            eWrapperImpl.ErrorReceived += eventHandler.ErrorReceivedHandler;
             eWrapperImpl.OrderStatusReceived += eventHandler.OrderStatusHandler;
             eWrapperImpl.ExecDetailsReceived += eventHandler.ExecDetailsHandler;
 
@@ -183,14 +192,16 @@ namespace QuantAssembly.Impl.IBGW
             if (!IsConnected)
                 throw new InvalidOperationException("Not connected to IB Gateway");
 
-            var ibOrderId = eWrapperImpl.NextOrderId++;
+            int requestId = nextValidRequestId++;
+
             var tcs = new TaskCompletionSource<ContractDetails>();
             var contract = GenerateSymbolContract(symbol, instrumentType, currency);
-            var handler = new ContractDetailsEventHandler(symbol, tcs, eWrapperImpl, eClientSocket);
+            var handler = new ContractDetailsEventHandler(symbol, requestId, tcs, eWrapperImpl, eClientSocket, logger);
             eWrapperImpl.ContractDetailsReceived += handler.ContractDetailsReceivedHandler;
+            eWrapperImpl.ErrorReceived += handler.ErrorReceivedHandler;
 
             logger.LogInfo($"Requesting contract details for symbol: {symbol}");
-            eClientSocket.reqContractDetails(ibOrderId, contract);
+            eClientSocket.reqContractDetails(requestId, contract);
             return await tcs.Task;
         }
 

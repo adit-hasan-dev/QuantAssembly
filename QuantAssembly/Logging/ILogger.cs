@@ -6,5 +6,6 @@ namespace QuantAssembly.Logging
         void LogDebug(string message);
         void LogError(string message);
         void LogError(Exception exception);
+        void LogWarn(string message);
     }
 }

@@ -90,8 +90,8 @@ namespace QuantAssembly
             .AddSingleton<IConfig, Config.Config>()
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                var logger = provider.GetRequiredService<IConfig>();
-                return new Logger(config);
+                var config = provider.GetRequiredService<IConfig>();
+                return new Logger(config, isDevEnv: false);
             })
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
@@ -117,14 +117,14 @@ namespace QuantAssembly
             })
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider =>
             {
-                var client = provider.GetRequiredService<IBGWClient>();
+                var client = provider.GetRequiredService<IIBGWClient>();
                 var config = provider.GetRequiredService<IConfig>();
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWAccountDataProvider(client, config, logger);
             })
             .AddSingleton<IMarketDataProvider, IBGWMarketDataProvider>(provider =>
             {
-                var client = provider.GetRequiredService<IBGWClient>();
+                var client = provider.GetRequiredService<IIBGWClient>();
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWMarketDataProvider(client, logger);
             })
@@ -136,6 +136,7 @@ namespace QuantAssembly
             logger.LogInfo("[Quant::ProcessSignals] Processing Signals ...");
 
             var openPositions = ledger.GetOpenPositions();
+            this.marketDataProvider.FlushMarketDataCache();
 
             var retiredTickers = openPositions.Where(openTicker => !config.TickerStrategyMap.Keys.Contains(openTicker.Symbol));
 

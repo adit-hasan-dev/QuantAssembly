@@ -42,6 +42,11 @@ namespace QuantAssembly.Logging
             _log($"{DateTime.Now}: Exception: {exception.Message}, StackTrace: {exception.StackTrace}");
         }
 
+        public void LogWarn(string message)
+        {
+            _log($"{DateTime.Now}: Warning: {message}\n");
+        }
+
         private void _log(string message)
         {
             lock (_logLock)

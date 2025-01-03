@@ -16,7 +16,7 @@ namespace QuantAssembly.Tests
         {
             var config = new Config.Config();
             var logger = new Logger(config, isDevEnv: true);
-            var apiKey = config.APIKey;
+            var apiKey = "key"; //config.APIKey;
             var alphaVantageClient = new AlphaVantageClient(logger, apiKey);
             var ticker = "AAPL";
 
@@ -131,10 +131,10 @@ namespace QuantAssembly.Tests
 
             var client = new IBGWClient(logger);
 
-            var marketData = await client.RequestMarketDataAsync("AAPL", 1);
+            var marketData = await client.RequestMarketDataAsync("AAPL");
             var accountData = await client.RequestAccountSummaryAsync(config.AccountId);
 
-            var marketDataMSFT = await client.RequestMarketDataAsync("MSFT", 1);
+            var marketDataMSFT = await client.RequestMarketDataAsync("MSFT");
             Assert.IsNotNull(marketData);
             Assert.IsNotNull(accountData);
             Assert.IsNotNull(marketDataMSFT);

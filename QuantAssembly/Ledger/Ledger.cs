@@ -21,9 +21,8 @@ namespace QuantAssembly.Ledger
 
             if (!File.Exists(filePath))
             {
-                string errorMessage = $"[Ledger] Ledger file path: {filePath} does not exist";
-                this.logger.LogError(errorMessage);
-                throw new FileNotFoundException(errorMessage);
+                logger.LogWarn($"[Ledger] Ledger file path: {filePath} does not exist. Creating new file.");
+                File.Create(filePath).Dispose();
             }
 
             string fileContent = File.ReadAllText(filePath);
@@ -46,12 +45,14 @@ namespace QuantAssembly.Ledger
 
         public void AddOpenPosition(Position position)
         {
+            this.logger.LogInfo($"[Ledger::AddOpenPosition] Opening position {position.Symbol} id: {position.PositionGuid}");
             positions.Add(position);
             SaveLedger();
         }
 
         public void ClosePosition(Position position)
         {
+            this.logger.LogInfo($"[Ledger::ClosePosition] Closing position {position.Symbol} id: {position.PositionGuid}");
             position.State = PositionState.Closed;
             SaveLedger();
         }

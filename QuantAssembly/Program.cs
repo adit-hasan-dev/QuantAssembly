@@ -1,8 +1,4 @@
-﻿using QuantAssembly.DataProvider;
-using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Strategy;
-
-namespace QuantAssembly
+﻿namespace QuantAssembly
 {
     public class Program
     {

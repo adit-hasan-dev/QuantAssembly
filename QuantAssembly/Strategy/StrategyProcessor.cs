@@ -66,7 +66,8 @@ namespace QuantAssembly.Strategy
                 throw new KeyNotFoundException("Strategy not found.");
             }
 
-            return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData) || EvaluateConditionGroup(strategy.TakeProfitConditions, marketData, histData);
+            // When determine whether to enter a position, we only care about the entry conditions
+            return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData);
         }
 
         public bool ShouldClose(MarketData marketData, AccountData accountData, HistoricalMarketData histData, Position position)
@@ -76,7 +77,13 @@ namespace QuantAssembly.Strategy
                 throw new KeyNotFoundException("Strategy not found.");
             }
 
-            return EvaluateConditionGroup(strategy.StopLossConditions, marketData, histData, position) || EvaluateConditionGroup(strategy.ExitConditions, marketData, histData, position);
+            // reasons to exit a position are:
+            // 1. The take profit level was reached
+            // 2. The exit condition was met
+            // 3. The stop loss condition was met
+            return  EvaluateConditionGroup(strategy.StopLossConditions, marketData, histData, position) || 
+                    EvaluateConditionGroup(strategy.ExitConditions, marketData, histData, position) ||
+                    EvaluateConditionGroup(strategy.TakeProfitConditions, marketData, histData, position);
         }
 
         private bool ValidateStrategy(Strategy strategy)

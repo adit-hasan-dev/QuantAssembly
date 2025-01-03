@@ -6,5 +6,6 @@ namespace QuantAssembly.DataProvider
     {
         Task<MarketData> GetMarketDataAsync(string symbol);
         Task<bool> IsWithinTradingHours(string symbol, DateTime? dateTime);
+        public void FlushMarketDataCache();
     }
 }
