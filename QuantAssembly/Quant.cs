@@ -155,8 +155,11 @@ namespace QuantAssembly
             {
                 if (await marketDataProvider.IsWithinTradingHours(position.Symbol, DateTime.UtcNow))
                 {
-                    logger.LogInfo($"[Quant::ProcessSignals] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
                     filteredPositions.Add(position);
+                }
+                else
+                {
+                    logger.LogInfo($"[Quant::ProcessSignals] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
                 }
             }
 
