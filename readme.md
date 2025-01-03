@@ -1,9 +1,9 @@
 # Quant Assembly
 
 ## Overview
-Quant Assembly is a modular trading bot application designed for developers to seamlessly define, test, and execute trading strategies. This project, which is a work in progress, serves as an exploration into the realm of quantitative finance and algorithmic trading.
+Quant Assembly is a modular trading bot application built in dotnet designed for developers to seamlessly define, test, and execute trading strategies. This project, which is a work in progress, serves as an exploration into the realm of quantitative finance and algorithmic trading.
 
-While the current version supports straightforward condition-based strategies, its architecture is built to accommodate more sophisticated quantitative strategies in the future, depending on evolving interests and needs. The application presently integrates with the Interactive Brokers (IB) Gateway API to retrieve market data and execute trades, but it is designed for easy extension to other data providers and execution platforms.
+Despite the pretentious name, the current version supports straightforward condition-based strategies, though its architecture is built to accommodate more sophisticated quantitative strategies in the future, depending on evolving interests and needs. The application presently integrates with the Interactive Brokers (IB) Gateway API to retrieve market data and execute trades, but it is designed for easy extension to other data providers and execution platforms.
 
 ## Architecture
 The architecture of the trading bot is designed with flexibility and extensibility in mind. Here are the main components:
