@@ -1,0 +1,7 @@
+/* Dashboard.razor.css */
+
+.chart-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

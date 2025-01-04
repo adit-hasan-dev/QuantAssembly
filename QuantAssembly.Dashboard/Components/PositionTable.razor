@@ -1,13 +1,13 @@
 <FluentStack Orientation="Orientation.Vertical">
     
-    <FluentStack Orientation="Orientation.Horizontal">
+    <FluentStack FluentUI:Orientation="Orientation.Horizontal">
         <FluentCheckbox @bind-Value="showGuid">Position Guid</FluentCheckbox>
         <FluentCheckbox @bind-Value="showInstrumentType">Instrument Type</FluentCheckbox>
         <FluentCheckbox @bind-Value="showCurrency">Currency</FluentCheckbox>
         <FluentCheckbox @bind-Value="showStrategyDefinition">Strategy Definition</FluentCheckbox>
     </FluentStack>
     
-    <FluentStack Orientation="Orientation.Horizontal">
+    <FluentStack FluentUI:Orientation="Orientation.Horizontal">
         <FluentTextField @bind-Value="filterSymbol" Placeholder="Filter by Symbol" Width="200px" oninput="ApplyFilters" onkeydown="HandleKeyDown"/> 
         <FluentTextField @bind-Value="filterState" Placeholder="Filter by State" Width="200px" onkeydown="HandleKeyDown"/> 
         <FluentTextField @bind-Value="filterStrategyName" Placeholder="Filter by StrategyName" Width="200px" onkeydown="HandleKeyDown" /> 

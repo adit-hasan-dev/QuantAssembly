@@ -4,15 +4,26 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<FluentStack>
+<FluentStack 
+    Orientation="Orientation.Vertical" 
+    HorizontalAlignment="HorizontalAlignment.Center" 
+    VerticalAlignment="VerticalAlignment.Center"
+    VerticalGap="20">
     <PositionTable Positions="positions" />
+    <FluentDivider Orientation="Orientation.Horizontal" Style="width: 100%;" Role="DividerRole.Presentation"/>
+    <MudBlazor.MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="labels" InputData="counts"/>
 </FluentStack>
 
 @code {
     private IQueryable<Position> positions;
-
+    public string[] labels = { "Open", "Closed" };
+    public double[] counts = { 0, 0 };
     protected override void OnInitialized()
     {
         positions = LedgerService.GetAllPositions();
+        var openCount = positions.Where(p => p.State.Equals("Open")).Count();
+        var closedCount = positions.Where(p => p.State.Equals("Closed")).Count();
+        counts = new double[]{ openCount, closedCount };
+        StateHasChanged();
     }
 }
