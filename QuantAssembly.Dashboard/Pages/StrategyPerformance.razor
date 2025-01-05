@@ -4,31 +4,64 @@
 
 <PageTitle>Strategy Performance</PageTitle>
 
-<FluentStack
-Orientation="Orientation.Vertical" 
-    HorizontalAlignment="HorizontalAlignment.Left" 
-    VerticalAlignment="VerticalAlignment.Center"
-    VerticalGap="20">
+<FluentStack Orientation="Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Left"
+VerticalAlignment="VerticalAlignment.Center" VerticalGap="20">
     <FluentHeader>Strategy Performance Summary</FluentHeader>
-    <FluentDataGrid Items="@strategiesMetrics"  ResizableColumns="true" ShowHover="true" AutoFit="true">
-        <PropertyColumn Property="@(s => s.StrategyName)" Title="Strategy Name" Sortable="true" HeaderToolTip="The name of the trading strategy"/>
-        <PropertyColumn Property="@(s => s.TotalProfitOrLoss)" Title="Total Profit/Loss" Sortable="true" HeaderToolTip="The total profit or loss for the strategy"/>
-        <PropertyColumn Property="@(s => s.WinRate)" Title="Win Rate (%)" Sortable="true" HeaderToolTip="The percentage of profitable trades"/>
-        <PropertyColumn Property="@(s => s.AverageProfitPerTrade)" Title="Average Profit per Trade" Sortable="true" HeaderToolTip="The average profit or loss per trade"/>
-        <PropertyColumn Property="@(s => s.AverageHoldingPeriod)" Title="Average Holding Period" Sortable="true" HeaderToolTip="The average time a position is held"/>
-        <PropertyColumn Property="@(s => s.SharpeRatio)" Title="Sharpe Ratio" Sortable="true" HeaderToolTip="A measure of the risk-adjusted return"/>
-        <PropertyColumn Property="@(s => s.AverageNumberOfPositionsOpened)" Title="Avg Positions Opened (per week)" Sortable="true" HeaderToolTip="The average number of positions opened per week"/>
-        <PropertyColumn Property="@(s => s.AverageNumberOfPositionsClosed)" Title="Avg Positions Closed (per week)" Sortable="true" HeaderToolTip="The average number of positions closed per week"/>
-        <PropertyColumn Property="@(s => s.MaxDrawDown)" Title="Max Drawdown" Sortable="true" HeaderToolTip="The maximum observed loss from a peak to a trough"/>
+    <FluentDataGrid Items="@strategiesMetrics" ResizableColumns="true" ShowHover="true" AutoFit="true">
+        <PropertyColumn Property="@(s => s.StrategyName)" Title="Strategy Name" Sortable="true"
+        HeaderToolTip="The name of the trading strategy" />
+        <PropertyColumn Property="@(s => s.TotalProfitOrLoss)" Title="Total Profit/Loss" Sortable="true"
+        HeaderToolTip="The total profit or loss for the strategy" />
+        <PropertyColumn Property="@(s => s.WinRate)" Title="Win Rate (%)" Sortable="true"
+        HeaderToolTip="The percentage of profitable trades" />
+        <PropertyColumn Property="@(s => s.AverageProfitPerTrade)" Title="Average Profit per Trade" Sortable="true"
+        HeaderToolTip="The average profit or loss per trade" />
+        <PropertyColumn Property="@(s => s.AverageHoldingPeriod)" Title="Average Holding Period" Sortable="true"
+        HeaderToolTip="The average time a position is held" />
+        <PropertyColumn Property="@(s => s.SharpeRatio)" Title="Sharpe Ratio" Sortable="true"
+        HeaderToolTip="A measure of the risk-adjusted return" />
+        <PropertyColumn Property="@(s => s.AverageNumberOfPositionsOpened)" Title="Avg Positions Opened (per week)"
+        Sortable="true" HeaderToolTip="The average number of positions opened per week" />
+        <PropertyColumn Property="@(s => s.AverageNumberOfPositionsClosed)" Title="Avg Positions Closed (per week)"
+        Sortable="true" HeaderToolTip="The average number of positions closed per week" />
+        <PropertyColumn Property="@(s => s.MaxDrawDown)" Title="Max Drawdown" Sortable="true"
+        HeaderToolTip="The maximum observed loss from a peak to a trough" />
     </FluentDataGrid>
+    <FluentDivider Orientation="Orientation.Horizontal" Style="width: 100%;" Role="DividerRole.Separator"/>
+    <MudBlazor.MudChart ChartType="MudBlazor.ChartType.Line" ChartSeries="chartSeries" XAxisLabels="chartLabels" Style="width: 100%; height: 100%"  />
+    
 </FluentStack>
 
 @code {
     private IQueryable<StrategyMetrics> strategiesMetrics;
+    private MudBlazor.ChartOptions chartOptions = new ();
+    private List<MudBlazor.ChartSeries> chartSeries = new();
+    private string[] chartLabels;
+
     protected override void OnInitialized()
     {
-        var positions = LedgerService.GetAllPositions().ToList(); 
+        var positions = LedgerService.GetAllPositions().ToList();
         strategiesMetrics = AnalyticsService.GetStrategyMetrics(positions);
+        var chartData = AnalyticsService.GetCumulativeProfitLossData(positions);
+        PrepareChartSeriesAndLabels(chartData);
         StateHasChanged();
+    }
+
+    private void PrepareChartSeriesAndLabels(List<AnalyticsService.StrategyCumulativeProfitLossData> data)
+    {
+        foreach (var item in data)
+        {
+            var series = new MudBlazor.ChartSeries
+            {
+                Name = item.StrategyName,
+                Data = item.CumulativeProfits.ToArray()
+            };
+            chartSeries.Add(series);
+        }
+
+        if (data.Count > 0)
+        {
+            chartLabels = data.First().Dates.Select(d => d.ToString("MM/dd")).ToArray();
+        }
     }
 }

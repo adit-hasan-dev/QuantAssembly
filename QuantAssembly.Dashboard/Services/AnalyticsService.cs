@@ -4,7 +4,7 @@ public class AnalyticsService
 {
     public IQueryable<StrategyMetrics> GetStrategyMetrics(List<Position> positions)
     {
-        double riskFreeRate = 0.01; // Example: 1% risk-free rate
+        double riskFreeRate = 0.02;
 
         var metrics = positions
             .GroupBy(p => p.StrategyName)
@@ -70,4 +70,52 @@ public class AnalyticsService
 
         return metrics;
     }
+
+    public class StrategyCumulativeProfitLossData
+    {
+        public string StrategyName { get; set; }
+        public List<DateTime> Dates { get; set; }
+        public List<double> CumulativeProfits { get; set; }
+    }
+
+    public List<StrategyCumulativeProfitLossData> GetCumulativeProfitLossData(List<Position> positions)
+    {
+        var strategyGroups = positions.GroupBy(p => p.StrategyName);
+
+        // Define the number of intervals for the x-axis
+        int numberOfIntervals = 12;
+
+        // Get the overall time range
+        var minDate = positions.Min(p => p.OpenTime);
+        var maxDate = positions.Max(p => p.OpenTime);
+
+        // Create a unified timeline with evenly spaced dates
+        var dateRange = Enumerable.Range(0, numberOfIntervals)
+                                  .Select(i => minDate.AddDays(i * (maxDate - minDate).TotalDays / (numberOfIntervals - 1)))
+                                  .ToList();
+
+        var result = new List<StrategyCumulativeProfitLossData>();
+        foreach (var group in strategyGroups)
+        {
+            var cumulativeProfit = 0.0;
+            var cumulativeProfits = new List<double>();
+
+            foreach (var date in dateRange)
+            {
+                var positionsAtDate = group.Where(p => p.OpenTime <= date).ToList();
+                cumulativeProfit = positionsAtDate.Sum(p => p.ProfitOrLoss);
+                cumulativeProfits.Add(cumulativeProfit);
+            }
+
+            result.Add(new StrategyCumulativeProfitLossData
+            {
+                StrategyName = group.Key,
+                Dates = dateRange,
+                CumulativeProfits = cumulativeProfits
+            });
+        }
+
+        return result;
+    }
+
 }
