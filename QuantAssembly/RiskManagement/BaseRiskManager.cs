@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
+using QuantAssembly.Common.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.RiskManagement

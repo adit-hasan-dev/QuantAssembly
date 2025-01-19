@@ -1,6 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Components.Forms;
-using QuantAssembly.Dashboard.Models;
+using QuantAssembly.Common.Models;
 
 public class LedgerService
 {

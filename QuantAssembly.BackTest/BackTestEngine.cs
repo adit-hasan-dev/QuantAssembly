@@ -9,12 +9,12 @@ using QuantAssembly.Impl.AlpacaMarkets;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
+using QuantAssembly.Common.Models;
 using QuantAssembly.RiskManagement;
 using QuantAssembly.Strategy;
 using QuantAssembly.TradeManager;
 using QuantAssembly.Utility;
-using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.BackTesting
 {

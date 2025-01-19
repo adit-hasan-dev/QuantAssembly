@@ -4,8 +4,9 @@ using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
 using Validator = QuantAssembly.Utility.Validator;
+using QuantAssembly.Common.Models;
+using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.TradeManager
 {

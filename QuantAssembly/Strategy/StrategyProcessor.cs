@@ -3,8 +3,8 @@ namespace QuantAssembly.Strategy
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using QuantAssembly.Common.Logging;
+    using QuantAssembly.Common.Models;
     using QuantAssembly.Models;
-    using QuantAssembly.Strategy;
     public class StrategyProcessor : IStrategyProcessor
     {
         private Dictionary<string, Strategy> strategies = new Dictionary<string, Strategy>();

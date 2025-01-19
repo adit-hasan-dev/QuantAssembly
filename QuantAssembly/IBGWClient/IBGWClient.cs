@@ -1,8 +1,8 @@
 using IBApi;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Models;
 using QuantAssembly.Models;
+using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Impl.IBGW
 {

@@ -3,7 +3,7 @@ namespace QuantAssembly.Ledger
     using Newtonsoft.Json;
     using QuantAssembly.Common.Config;
     using QuantAssembly.Common.Logging;
-    using QuantAssembly.Models;
+    using QuantAssembly.Common.Models;
     using System.Collections.Generic;
     using System.IO;
 

@@ -1,4 +1,4 @@
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Impl.IBGW
 {

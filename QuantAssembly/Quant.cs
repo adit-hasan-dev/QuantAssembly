@@ -9,11 +9,12 @@ using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
 using QuantAssembly.RiskManagement;
 using QuantAssembly.Strategy;
 using QuantAssembly.TradeManager;
 using Validator = QuantAssembly.Utility.Validator;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly
 {

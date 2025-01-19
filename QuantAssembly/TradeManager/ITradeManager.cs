@@ -1,7 +1,8 @@
 namespace QuantAssembly.TradeManager
 {
     using Models;
-    using QuantAssembly.Models.Constants;
+    using QuantAssembly.Common.Models;
+    using QuantAssembly.Common.Constants;
 
     public interface ITradeManager
     {

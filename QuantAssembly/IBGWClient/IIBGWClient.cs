@@ -1,6 +1,7 @@
 using IBApi;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Models;
+using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Impl.IBGW
 {

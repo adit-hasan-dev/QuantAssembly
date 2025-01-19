@@ -3,9 +3,10 @@ using QuantAssembly.BackTesting.Utility;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Models;
 using QuantAssembly.TradeManager;
 using QuantAssembly.Utility;
+using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.BackTesting.TradeManager
 {

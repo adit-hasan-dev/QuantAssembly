@@ -4,7 +4,6 @@ namespace QuantAssembly.Impl.IBGW
     using System.Collections.Generic;
     using IBApi;
     using QuantAssembly.Common.Logging;
-    using QuantAssembly.Models.Constants;
 
     public class EWrapperImpl : EWrapper
     {

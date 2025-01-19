@@ -1,6 +1,6 @@
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
 
-namespace QuantAssembly.Models
+namespace QuantAssembly.Common.Models
 {
     public enum PositionState
     {

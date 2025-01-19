@@ -1,3 +1,4 @@
+using QuantAssembly.Common.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.Strategy

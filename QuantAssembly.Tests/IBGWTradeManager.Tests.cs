@@ -3,9 +3,10 @@ using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
 using QuantAssembly.TradeManager;
 using QuantAssembly.Common.Config;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.Tests
 {

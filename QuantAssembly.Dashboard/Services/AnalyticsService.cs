@@ -1,3 +1,4 @@
+using QuantAssembly.Common.Models;
 using QuantAssembly.Dashboard.Models;
 
 public class AnalyticsService
@@ -17,7 +18,7 @@ public class AnalyticsService
                 var winRate = totalTrades > 0 ? Math.Round((double)winningTrades / totalTrades * 100, 2) : 0;
                 var averageProfitPerTrade = totalTrades > 0 ? Math.Round(strategyPositions.Average(p => p.ProfitOrLoss), 2) : 0;
 
-                var closedPositions = strategyPositions.Where(p => p.State == "Closed").ToList();
+                var closedPositions = strategyPositions.Where(p => p.State == PositionState.Closed).ToList();
                 var averageHoldingPeriod = closedPositions.Count > 0
                     ? TimeSpan.FromTicks((long)closedPositions.Average(p => (p.CloseTime - p.OpenTime).Ticks))
                     : TimeSpan.Zero;
@@ -31,8 +32,8 @@ public class AnalyticsService
 
                 var firstOpenTime = strategyPositions.Min(p => p.OpenTime);
                 var weeks = (DateTime.Now - firstOpenTime).TotalDays / 7;
-                var averageNumberOfPositionsOpened = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == "Open") / weeks, 2) : 0;
-                var averageNumberOfPositionsClosed = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == "Closed") / weeks, 2) : 0;
+                var averageNumberOfPositionsOpened = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == PositionState.Open) / weeks, 2) : 0;
+                var averageNumberOfPositionsClosed = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == PositionState.Closed) / weeks, 2) : 0;
 
                 // Calculate Max Drawdown
                 var cumulativeProfit = 0.0;

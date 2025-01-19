@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.Common.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.RiskManagement

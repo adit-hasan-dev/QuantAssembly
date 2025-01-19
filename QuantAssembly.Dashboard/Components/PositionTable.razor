@@ -58,7 +58,7 @@
     private string filterStrategyName = string.Empty; 
     private IQueryable<Position> FilteredPositions => positions
         .Where(p => (string.IsNullOrEmpty(filterSymbol) || p.Symbol.Contains(filterSymbol, StringComparison.OrdinalIgnoreCase)) && 
-                    (string.IsNullOrEmpty(filterState) || p.State.Contains(filterState, StringComparison.OrdinalIgnoreCase)) && 
+                    (string.IsNullOrEmpty(filterState) || p.State.ToString().Contains(filterState, StringComparison.OrdinalIgnoreCase)) && 
                     (string.IsNullOrEmpty(filterStrategyName) || p.StrategyName.Contains(filterStrategyName, StringComparison.OrdinalIgnoreCase))).AsQueryable();
 
     private void ApplyFilters() 

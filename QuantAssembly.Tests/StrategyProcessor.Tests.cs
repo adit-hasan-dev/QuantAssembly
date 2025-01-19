@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
+using QuantAssembly.Common.Models;
 using QuantAssembly.Models;
 using QuantAssembly.Strategy;
 

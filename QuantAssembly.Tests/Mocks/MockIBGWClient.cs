@@ -2,7 +2,8 @@ using IBApi;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.Tests
 {

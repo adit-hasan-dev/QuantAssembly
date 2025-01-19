@@ -1,12 +1,11 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using QuantAssembly.Common.Config;
 using QuantAssembly.RiskManagement;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
-using QuantAssembly.Models.Constants;
+using QuantAssembly.Common.Constants;
+using QuantAssembly.Common.Models;
 
 namespace TradingApp.Tests
 {

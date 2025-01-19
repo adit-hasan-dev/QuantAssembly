@@ -1,6 +1,6 @@
 namespace QuantAssembly.Ledger
 {
-    using QuantAssembly.Models;
+    using QuantAssembly.Common.Models;
     
     public interface ILedger
     {
