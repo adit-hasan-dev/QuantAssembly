@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 using IBApi;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.Impl.IBGW
@@ -29,12 +29,15 @@ namespace QuantAssembly.Impl.IBGW
             this.position = position;
         }
 
-        public void ErrorEventHandler(int id, int errorCode, string errorMsg, string advancedOrderRejectJson)
+        public override void ErrorReceivedHandler(int id, int errorCode, string errorMsg, string advancedOrderRejectJson)
         {
-            _logger.LogError($"[IBGWClient::ErrorHandler] Id: {id} errorCode: {errorCode}. {errorMsg}. advancedOrderRejectJson: {advancedOrderRejectJson}");
-            result.TransactionState = TransactionState.Failed;
-            taskCompletionSource.SetResult(result);
-            Detach();
+            if (id == ibOrderId)
+            {
+                _logger.LogError($"[IBGWClient::OrderEventHandler::ErrorHandler] Id: {id} errorCode: {errorCode}. {errorMsg}. advancedOrderRejectJson: {advancedOrderRejectJson}");
+                result.TransactionState = TransactionState.Failed;
+                taskCompletionSource.SetResult(result);
+                Detach();
+            }
         }
 
         public void OrderStatusHandler(
@@ -64,7 +67,7 @@ namespace QuantAssembly.Impl.IBGW
                 if (result.TransactionState == TransactionState.Failed || result.TransactionState == TransactionState.Cancelled)
                 {
                     taskCompletionSource.SetResult(result);
-                    eWrapper.OrderStatusReceived -= OrderStatusHandler;
+                    Detach();
                 }
                 if (result.TransactionState == TransactionState.Completed && remaining == 0)
                 {
@@ -95,11 +98,11 @@ namespace QuantAssembly.Impl.IBGW
             }
         }
 
-        private void Detach()
+        protected override void Detach()
         {
             eWrapper.ExecDetailsReceived -= ExecDetailsHandler;
             eWrapper.OrderStatusReceived -= OrderStatusHandler;
-            eWrapper.ErrorReceived -= ErrorEventHandler;
+            eWrapper.ErrorReceived -= ErrorReceivedHandler;
         }
     }
 }

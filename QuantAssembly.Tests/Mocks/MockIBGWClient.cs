@@ -1,6 +1,6 @@
 using IBApi;
 using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Models.Constants;
 
@@ -50,7 +50,7 @@ namespace QuantAssembly.Tests
         }
 
         // Stub the other methods to avoid actual external calls
-        public Task<MarketData> RequestMarketDataAsync(string ticker, int requestId, string instrumentType = "STK", string currency = "USD")
+        public Task<MarketData> RequestMarketDataAsync(string ticker, string instrumentType = "STK", string currency = "USD")
         {
             throw new NotImplementedException();
         }

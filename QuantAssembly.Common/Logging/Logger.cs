@@ -1,6 +1,6 @@
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 
-namespace QuantAssembly.Logging
+namespace QuantAssembly.Common.Logging
 {
     public class Logger : ILogger
     {
@@ -40,6 +40,11 @@ namespace QuantAssembly.Logging
         public void LogError(Exception exception)
         {
             _log($"{DateTime.Now}: Exception: {exception.Message}, StackTrace: {exception.StackTrace}");
+        }
+
+        public void LogWarn(string message)
+        {
+            _log($"{DateTime.Now}: Warning: {message}\n");
         }
 
         private void _log(string message)

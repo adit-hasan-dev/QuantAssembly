@@ -1,13 +1,13 @@
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.AlphaVantage;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Models.Constants;
 using QuantAssembly.RiskManagement;
@@ -37,7 +37,7 @@ namespace QuantAssembly
 
         public Quant()
         {
-            Inititalize();
+            Initialize();
             logger = serviceProvider.GetRequiredService<ILogger>();
             config = serviceProvider.GetRequiredService<IConfig>();
             logger.LogInfo("Initializing Quant...");
@@ -83,15 +83,15 @@ namespace QuantAssembly
             shouldTerminate = true;
         }
 
-        private void Inititalize()
+        private void Initialize()
         {
             var services = new ServiceCollection();
             serviceProvider = services
-            .AddSingleton<IConfig, Config.Config>()
+            .AddSingleton<IConfig, Config>()
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                var logger = provider.GetRequiredService<IConfig>();
-                return new Logger(config);
+                var config = provider.GetRequiredService<IConfig>();
+                return new Logger(config, isDevEnv: false);
             })
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
@@ -117,14 +117,14 @@ namespace QuantAssembly
             })
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider =>
             {
-                var client = provider.GetRequiredService<IBGWClient>();
+                var client = provider.GetRequiredService<IIBGWClient>();
                 var config = provider.GetRequiredService<IConfig>();
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWAccountDataProvider(client, config, logger);
             })
             .AddSingleton<IMarketDataProvider, IBGWMarketDataProvider>(provider =>
             {
-                var client = provider.GetRequiredService<IBGWClient>();
+                var client = provider.GetRequiredService<IIBGWClient>();
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWMarketDataProvider(client, logger);
             })
@@ -136,6 +136,7 @@ namespace QuantAssembly
             logger.LogInfo("[Quant::ProcessSignals] Processing Signals ...");
 
             var openPositions = ledger.GetOpenPositions();
+            this.marketDataProvider.FlushMarketDataCache();
 
             var retiredTickers = openPositions.Where(openTicker => !config.TickerStrategyMap.Keys.Contains(openTicker.Symbol));
 
@@ -225,6 +226,7 @@ namespace QuantAssembly
         private async void ProcessExitSignal(Position position, MarketData marketData, HistoricalMarketData histData)
         {
             logger.LogInfo($"[Quant::ProcessExitSignal] Processing exit signals for {position.Symbol}");
+            accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
 
             // Update current price according to latest market data for position
             position.CurrentPrice = marketData.LatestPrice;
@@ -239,7 +241,6 @@ namespace QuantAssembly
                 // TODO: Handle unsuccessful transactions
                 if (result.TransactionState == TransactionState.Completed)
                 {
-                    accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
                     Validator.AssertPropertiesNonNull(
                     position, 
                     new List<string>{
@@ -273,6 +274,7 @@ namespace QuantAssembly
         private async void ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, HistoricalMarketData histData)
         {
             logger.LogInfo($"[Quant::ProcessEntrySignal] Processing Entry Signals for {symbol}");
+            accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
             if (strategyProcessor.ShouldOpen(marketData, accountData, histData, symbol))
             {
                 var position = PrepareOpenPosition(symbol, marketData);
@@ -282,7 +284,6 @@ namespace QuantAssembly
                     var result = await tradeManager.OpenPositionAsync(position, OrderType.Market);
                     if (result.TransactionState == TransactionState.Completed)
                     {
-                        accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
                         Validator.AssertPropertiesNonNull(
                             position, 
                             new List<string>{

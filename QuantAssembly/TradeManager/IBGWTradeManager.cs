@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Models.Constants;
 using Validator = QuantAssembly.Utility.Validator;

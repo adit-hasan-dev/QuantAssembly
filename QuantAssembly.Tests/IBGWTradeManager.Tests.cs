@@ -1,10 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Models.Constants;
 using QuantAssembly.TradeManager;
+using QuantAssembly.Common.Config;
 
 namespace QuantAssembly.Tests
 {
@@ -20,7 +21,7 @@ namespace QuantAssembly.Tests
         [TestInitialize]
         public void Setup()
         {
-            var config = new Config.Config();
+            var config = new Config();
             if (File.Exists(config.LedgerFilePath))
             {
                 File.WriteAllText(config.LedgerFilePath, string.Empty);

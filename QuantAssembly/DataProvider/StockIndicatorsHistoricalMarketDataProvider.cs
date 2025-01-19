@@ -1,7 +1,8 @@
 using QuantAssembly.Impl.AlpacaMarkets;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using Skender.Stock.Indicators;
+using Alpaca.Markets;
 
 namespace QuantAssembly.DataProvider
 {
@@ -18,7 +19,7 @@ namespace QuantAssembly.DataProvider
 
         public async Task<HistoricalMarketData> GetHistoricalDataAsync(string ticker)
         {
-            var historicalData = await alpacaDataClient.GetHistoricalDataAsync(ticker);
+            var historicalData = await alpacaDataClient.GetHistoricalDataAsync<IBar>(ticker);
 
             var quotes = historicalData
                 .Select(bar => new Quote

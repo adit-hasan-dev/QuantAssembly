@@ -1,6 +1,6 @@
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Models;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Utility;
 
 namespace QuantAssembly.DataProvider
@@ -9,10 +9,8 @@ namespace QuantAssembly.DataProvider
     {
         private readonly IIBGWClient ibgwClient;
         private readonly ILogger logger;
-        private readonly Dictionary<string, int> tickerSymbolToIdMap = new Dictionary<string, int>();
-        private readonly Dictionary<int, MarketData> marketDataMap = new Dictionary<int, MarketData>();
+        private readonly Dictionary<string, MarketData> marketDataCache = new Dictionary<string, MarketData>();
         private readonly object lockObj = new object();
-        private int nextRequestId = 0;
 
         public IBGWMarketDataProvider(IIBGWClient ibgwClient, ILogger logger)
         {
@@ -20,32 +18,32 @@ namespace QuantAssembly.DataProvider
             this.logger = logger;
         }
 
+        public void FlushMarketDataCache()
+        {
+            logger.LogDebug("[IBGWMarketDataProvider] Flushing market data cache.");
+            marketDataCache.Clear();
+        }
+
         public async Task<MarketData> GetMarketDataAsync(string ticker)
         {
-            int requestId;
-
             lock (lockObj)
             {
-                if (!tickerSymbolToIdMap.TryGetValue(ticker, out requestId))
+                if (marketDataCache.TryGetValue(ticker, out var marketData))
                 {
-                    logger.LogInfo($"Subscribing to market data for ticker: {ticker}");
-                    requestId = nextRequestId++;
-                    tickerSymbolToIdMap[ticker] = requestId;
-                }
-                else
-                {
-                    logger.LogInfo($"Already subscribed to market data for ticker: {ticker}");
+                    logger.LogDebug($"[IBGWMarketDataProvider::GetMarketDataAsync] Fetching market data for ticker: {ticker} from cache.");
+                    return marketData;
                 }
             }
 
-            var marketData = await ibgwClient.RequestMarketDataAsync(ticker, requestId);
+            logger.LogDebug($"[IBGWMarketDataProvider::GetMarketDataAsync] Fetching market data for ticker: {ticker} from IBGWClient since it is not cached.");
+            var marketDataFresh = await ibgwClient.RequestMarketDataAsync(ticker); 
 
             lock (lockObj)
             {
-                marketDataMap[requestId] = marketData;
+                marketDataCache[ticker] = marketDataFresh;
             }
 
-            return marketData;
+            return marketDataFresh;
         }
 
         public async Task<bool> IsWithinTradingHours(string ticker, DateTime? dateTime)
