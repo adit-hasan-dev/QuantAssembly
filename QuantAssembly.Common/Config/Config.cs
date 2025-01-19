@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using System.IO;
 
-namespace QuantAssembly.Config
+namespace QuantAssembly.Common.Config
 {
     public class Config : IConfig
     {
@@ -18,8 +18,9 @@ namespace QuantAssembly.Config
         public string AccountId => _config["AccountId"].ToString();
         public bool EnableDebugLog => _config["EnableDebugLog"].ToString().Contains("true");
         public string LogFilePath => _config["LogFilePath"].ToString();
-        public Dictionary<string, string> TickerStrategyMap => _config["TickerStrategyMap"].ToObject<Dictionary<string, string>>();
         public string LedgerFilePath => _config["LedgerFilePath"].ToString();
+        public string CacheFolderPath => _config["CacheFolderPath"].ToString();
+        public Dictionary<string, string> TickerStrategyMap => _config["TickerStrategyMap"].ToObject<Dictionary<string, string>>();
         public int PollingIntervalInMs => (int)_config["PollingIntervalInMs"];
         public RiskManagementConfig RiskManagement => _config["RiskManagement"].ToObject<RiskManagementConfig>();
         public Dictionary<string, JObject> CustomProperties => _config["CustomProperties"].ToObject<Dictionary<string, JObject>>();

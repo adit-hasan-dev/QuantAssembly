@@ -2,9 +2,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 using QuantAssembly.RiskManagement;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Models.Constants;
 
@@ -24,6 +24,7 @@ namespace TradingApp.Tests
             {"GOOGL", "strategies/GOOGL_strategy.json"}
         };
         public string LedgerFilePath => "ledger.json";
+        public string CacheFolderPath => "cachefoler";
         public int PollingIntervalInMs => 1000;
         public string APIKey => "<key>";
         public RiskManagementConfig RiskManagement => new RiskManagementConfig

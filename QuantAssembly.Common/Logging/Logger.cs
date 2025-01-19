@@ -1,6 +1,6 @@
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 
-namespace QuantAssembly.Logging
+namespace QuantAssembly.Common.Logging
 {
     public class Logger : ILogger
     {

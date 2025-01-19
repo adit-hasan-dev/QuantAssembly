@@ -1,6 +1,6 @@
-using QuantAssembly.Config;
+using QuantAssembly.Common.Config;
 using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.DataProvider

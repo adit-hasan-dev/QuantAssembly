@@ -1,6 +1,7 @@
 using IBApi;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
+using QuantAssembly.Common.Config;
 
 namespace QuantAssembly.Tests
 {
@@ -15,7 +16,7 @@ namespace QuantAssembly.Tests
         [TestInitialize]
         public void Setup()
         {
-            var config = new Config.Config();
+            var config = new Config();
 
             logger = new Logger(config, isDevEnv: true);
             mockClient = new MockIBGWClient();

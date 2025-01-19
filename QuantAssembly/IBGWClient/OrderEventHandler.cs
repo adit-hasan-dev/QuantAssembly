@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 using IBApi;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.Impl.IBGW

@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Config;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using QuantAssembly.Strategy;
 
@@ -14,7 +15,7 @@ namespace QuantAssembly.Tests
         [TestInitialize]
         public void Setup()
         {
-            var config = new Config.Config();
+            var config = new Config();
             logger = new Logger(config);
             strategyProcessor = new StrategyProcessor(logger);
         }

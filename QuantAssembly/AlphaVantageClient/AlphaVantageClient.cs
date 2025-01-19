@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 using Polly;
 using Polly.RateLimit;
 using Polly.Wrap;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 using Polly.Retry;
 
 namespace QuantAssembly.Impl.AlphaVantage

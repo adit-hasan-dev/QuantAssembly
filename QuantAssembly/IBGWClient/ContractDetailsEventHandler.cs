@@ -1,5 +1,5 @@
 using IBApi;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
 
 namespace QuantAssembly.Impl.IBGW
 {

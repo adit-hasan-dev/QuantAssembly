@@ -1,4 +1,4 @@
-namespace QuantAssembly.Logging
+namespace QuantAssembly.Common.Logging
 {
     public interface ILogger
     {

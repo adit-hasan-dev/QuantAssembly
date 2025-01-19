@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 
-namespace QuantAssembly.Config
+namespace QuantAssembly.Common.Config
 {
     public class RiskManagementConfig 
     { 
@@ -13,8 +13,9 @@ namespace QuantAssembly.Config
         string AccountId { get; } 
         bool EnableDebugLog { get; } 
         string LogFilePath { get; } 
-        Dictionary<string, string> TickerStrategyMap { get; } 
         string LedgerFilePath { get; } 
+        string CacheFolderPath { get; }
+        Dictionary<string, string> TickerStrategyMap { get; } 
         int PollingIntervalInMs { get; } 
         RiskManagementConfig RiskManagement { get; } 
         public Dictionary<string, JObject> CustomProperties { get; } 

@@ -2,7 +2,7 @@ namespace QuantAssembly.Strategy
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;
-    using QuantAssembly.Logging;
+    using QuantAssembly.Common.Logging;
     using QuantAssembly.Models;
     using QuantAssembly.Strategy;
     public class StrategyProcessor : IStrategyProcessor
