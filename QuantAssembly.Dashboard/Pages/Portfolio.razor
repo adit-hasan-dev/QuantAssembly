@@ -1,8 +1,96 @@
 @page "/portfolio"
 @inject LedgerService LedgerService
+@inject AnalyticsService AnalyticsService
+@using Orientation = Microsoft.FluentUI.AspNetCore.Components.Orientation
+@using Position = QuantAssembly.Common.Models.Position
 
 <PageTitle>Portfolio Performance</PageTitle>
 
-<FluentStack>
-
+<FluentStack Orientation="Orientation.Vertical" HorizontalAlignment="HorizontalAlignment.Center"
+    VerticalAlignment="VerticalAlignment.Center" VerticalGap="20">
+    <div class="container-fluid overflow-x-auto">
+        <LineChart @ref="lineChart" />
+    </div>
+    <FluentDivider Orientation="Orientation.Horizontal" Style="width: 100%;" Role="DividerRole.Presentation" />
+    <PieChart @ref="pieChart" Class="mb-5" />
 </FluentStack>
+
+@code
+{
+    private IQueryable<Position> positions;
+    public List<string> labels = new List<string> { "Open", "Closed" };
+
+    // Line chart of cumulative P/E of portfolio
+    private LineChart lineChart = default!;
+    private LineChartOptions lineChartOptions = default!;
+    private ChartData lineChartData = default!;
+    private List<string> lineChartLabels = new List<string>();
+
+    // Pie chart of open vs. closed positions
+    private PieChart pieChart = default!;
+    private PieChartOptions pieChartOptions = default!;
+    private ChartData pieChartData = default!;
+    private List<string> pieChartLabels = new List<string>();
+
+    private readonly int borderWidth = 2;
+    private readonly int hoverBorderWidth = 3;
+    protected override void OnInitialized()
+    {
+        positions = LedgerService.GetAllPositions();
+        PreparePieChart(positions);
+        PrepareChartSeriesAndLabels(positions);
+        StateHasChanged();
+    }
+
+    private void PreparePieChart(IQueryable<Position> positions)
+    {
+        var openCount = positions.Where(p => p.State == PositionState.Open).Count();
+        var closedCount = positions.Where(p => p.State == PositionState.Closed).Count();
+        var dataSets = new List<IChartDataset>
+        {
+            new PieChartDataset { Data = new List<double?> { openCount, closedCount } }
+        };
+        pieChartData = new ChartData { Datasets = dataSets, Labels = labels};
+    }
+
+    private void PrepareChartSeriesAndLabels(IQueryable<Position> positions)
+    {
+        var peData = AnalyticsService.GetCumulativeProfitLossDataOverTime(positions.ToList()).First();
+
+        var colors = ColorUtility.CategoricalTwelveColors;
+        lineChartLabels = peData.TimeStamps.ToList();
+        var dataSets = new List<IChartDataset>();
+
+        var lineChartSeries = new LineChartDataset
+            {
+                Label = peData.StrategyName,
+                BorderWidth = borderWidth,
+                Data = peData.CumulativeProfits.Select(d => (double?)d).ToList(),
+                HoverBorderWidth = hoverBorderWidth,
+                BackgroundColor = colors[0],
+                BorderColor = colors[0],
+            };
+        dataSets.Add(lineChartSeries);
+        lineChartData = new ChartData { Datasets = dataSets, Labels = lineChartLabels };
+        lineChartOptions = new();
+        lineChartOptions.Responsive = true;
+        lineChartOptions.Interaction = new Interaction { Mode = InteractionMode.Index };
+
+        lineChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Time", Display = true };
+        lineChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Cumulative P/E (USD)", Display = true };
+
+        lineChartOptions.Plugins.Title!.Text = "Cumulative Profit/Loss over time";
+        lineChartOptions.Plugins.Title.Display = true;
+        pieChartOptions.Plugins.Legend.Position = "right";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await lineChart.InitializeAsync(lineChartData, lineChartOptions);
+            await pieChart.InitializeAsync(pieChartData, pieChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

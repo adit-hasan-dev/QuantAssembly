@@ -89,11 +89,12 @@ public class AnalyticsService
     public class StrategyCumulativeProfitLossData
     {
         public string StrategyName { get; set; }
-        public List<int> NumberOfTransactions { get; set; }
-        public List<double> CumulativeProfits { get; set; }
+        public List<int> NumberOfTransactions { get; set; } = new List<int>();
+        public List<double> CumulativeProfits { get; set; } = new List<double>();
+        public List<string> TimeStamps { get; set; } = new List<string>();
     }
 
-    public List<StrategyCumulativeProfitLossData> GetCumulativeProfitLossData(List<Position> positions)
+    public List<StrategyCumulativeProfitLossData> GetCumulativeProfitLossDataByStrategy(List<Position> positions)
     {
         var openDateFallback = DateTime.Parse("0001-01-01T00:00:00");
         var strategyGroups = positions.GroupBy(p => p.StrategyName);
@@ -104,20 +105,8 @@ public class AnalyticsService
 
         foreach (var group in strategyGroups)
         {
-            var cumulativeProfits = new List<double>();
-
-            // Process positions, using 'OpenTime' and fall back to 'openDateFallback' if 'CloseTime' is default
             var sortedGroup = group.OrderBy(p => p.CloseTime == openDateFallback ? p.OpenTime : p.CloseTime);
-
-            foreach (var position in sortedGroup)
-            {
-                var profitOrLoss = position.State == PositionState.Closed
-                    ? position.ProfitOrLoss  // Closed position
-                    : position.CurrentPrice - position.OpenPrice; // Open position
-
-                var cumulativeProfit = (cumulativeProfits.Count > 0 ? cumulativeProfits.Last() : 0) + profitOrLoss;
-                cumulativeProfits.Add(cumulativeProfit);
-            }
+            var cumulativeProfits = CalculateCumulativeProfits(sortedGroup);
 
             // If necessary, add 0 values to ensure all strategies have the same number of data points
             for (int i = cumulativeProfits.Count; i < maxTransactions; i++)
@@ -136,4 +125,54 @@ public class AnalyticsService
         return result;
     }
 
+    public List<StrategyCumulativeProfitLossData> GetCumulativeProfitLossDataOverTime(List<Position> positions)
+    {
+        var openDateFallback = DateTime.Parse("0001-01-01T00:00:00");
+        var sortedPositions = positions.OrderBy(p => p.CloseTime == openDateFallback ? p.OpenTime : p.CloseTime).ToList();
+        var cumulativeProfits = CalculateCumulativeProfits(sortedPositions);
+
+        var dailyCumulativeProfits = new Dictionary<DateTime, double>();
+        var cumulativeProfitByDate = 0.0;
+        foreach (var position in sortedPositions)
+        {
+            var date = position.CloseTime == openDateFallback ? position.OpenTime.Date : position.CloseTime.Date;
+            if (!dailyCumulativeProfits.ContainsKey(date))
+            {
+                dailyCumulativeProfits[date] = cumulativeProfitByDate;
+            }
+
+            cumulativeProfitByDate += position.State == PositionState.Closed
+                ? position.ProfitOrLoss  // Closed position
+                : position.CurrentPrice - position.OpenPrice; // Open position
+
+            dailyCumulativeProfits[date] = cumulativeProfitByDate;
+        }
+
+        return new List<StrategyCumulativeProfitLossData>
+        {
+            new StrategyCumulativeProfitLossData
+            {
+                StrategyName = "Portfolio",
+                TimeStamps = dailyCumulativeProfits.Keys.Select(d => d.ToString("yyyy-MM-dd")).ToList(),
+                CumulativeProfits = dailyCumulativeProfits.Values.ToList()
+            }
+        };
+    }
+
+    private List<double> CalculateCumulativeProfits(IEnumerable<Position> sortedPositions)
+    {
+        var cumulativeProfits = new List<double>();
+
+        foreach (var position in sortedPositions)
+        {
+            var profitOrLoss = position.State == PositionState.Closed
+                ? position.ProfitOrLoss  // Closed position
+                : position.CurrentPrice - position.OpenPrice; // Open position
+
+            var cumulativeProfit = (cumulativeProfits.Count > 0 ? cumulativeProfits.Last() : 0) + profitOrLoss;
+            cumulativeProfits.Add(cumulativeProfit);
+        }
+
+        return cumulativeProfits;
+    }
 }

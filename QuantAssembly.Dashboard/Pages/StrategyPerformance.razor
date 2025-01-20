@@ -50,14 +50,12 @@
     {
         var positions = LedgerService.GetAllPositions().ToList();
         strategiesMetrics = AnalyticsService.GetStrategyMetrics(positions);
-        var peData = AnalyticsService.GetCumulativeProfitLossData(positions);
+        var peData = AnalyticsService.GetCumulativeProfitLossDataByStrategy(positions);
         PrepareChartSeriesAndLabels(peData);
         StateHasChanged();
     }
 
-    private void PrepareChartSeriesAndLabels(
-    List<AnalyticsService.StrategyCumulativeProfitLossData> peData,
-    int numberOfVisibleLabels = 12)
+    private void PrepareChartSeriesAndLabels(List<AnalyticsService.StrategyCumulativeProfitLossData> peData)
     {
         var colors = ColorUtility.CategoricalTwelveColors;
         int colorIndex = 0;
