@@ -28,7 +28,7 @@
                 "Value": 30
             },
             {
-                "Property": "SMA_50",
+                "LeftHandOperand": "SMA_50",
                 "Operator": "EqualTo",
                 "Value": 20
             },

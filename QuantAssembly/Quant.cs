@@ -231,9 +231,10 @@ namespace QuantAssembly
 
             // Update current price according to latest market data for position
             position.CurrentPrice = marketData.LatestPrice;
-            if (strategyProcessor.ShouldClose(marketData, accountData, histData, position))
+            var closeSignal = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
+            if (closeSignal != SignalType.None)
             {
-                logger.LogInfo($"[Quant::ProcessExitSignal] Exit conditions met for position: {position}");
+                logger.LogInfo($"[Quant::ProcessExitSignal] Exit conditions met for position: {position}, SignalType: {closeSignal}");
 
                 // For now, we don't engage the risk manager to close positions
                 // We just sell off the entire position
@@ -276,7 +277,8 @@ namespace QuantAssembly
         {
             logger.LogInfo($"[Quant::ProcessEntrySignal] Processing Entry Signals for {symbol}");
             accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-            if (strategyProcessor.ShouldOpen(marketData, accountData, histData, symbol))
+            var openSignal = strategyProcessor.EvaluateOpenSignal(marketData, accountData, histData, symbol);
+            if (openSignal != SignalType.None)
             {
                 var position = PrepareOpenPosition(symbol, marketData);
                 if (riskManager.ComputePositionSize(marketData, histData, accountData, position))

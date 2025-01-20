@@ -69,8 +69,8 @@
                     BorderWidth = borderWidth,
                     Data = strategy.CumulativeProfits.Select(d => (double?)d).ToList(),
                     HoverBorderWidth = hoverBorderWidth,
-                    BackgroundColor = colors[0],
-                    BorderColor = colors[0],
+                    BackgroundColor = colors[colorIndex],
+                    BorderColor = colors[colorIndex],
                 };
             dataSets.Add(lineChartData);
             colorIndex++;

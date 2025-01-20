@@ -1,18 +1,13 @@
 using System;
 
-namespace QuantAssembly.Models;
-
-public abstract class ISignal
+namespace QuantAssembly.Models
 {
-    public string Ticker { get; }
-}
-
-public class EntrySignal : ISignal
-{
-
-}
-
-public class ExitSignal : ISignal
-{
-    
+    public enum SignalType
+    {
+        None,
+        Entry,
+        Exit,
+        StopLoss,
+        TakeProfit
+    }
 }

@@ -59,7 +59,7 @@ namespace QuantAssembly.Strategy
         }
 
 
-        public bool ShouldOpen(MarketData marketData, AccountData accountData, HistoricalMarketData histData, string stockTicker)
+        public SignalType EvaluateOpenSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, string stockTicker)
         {
             if (!strategies.TryGetValue(stockTicker, out var strategy))
             {
@@ -67,10 +67,10 @@ namespace QuantAssembly.Strategy
             }
 
             // When determine whether to enter a position, we only care about the entry conditions
-            return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData);
+            return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData) ? SignalType.Entry : SignalType.None;
         }
 
-        public bool ShouldClose(MarketData marketData, AccountData accountData, HistoricalMarketData histData, Position position)
+        public SignalType EvaluateCloseSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, Position position)
         {
             if (!strategies.TryGetValue(position.Symbol, out var strategy))
             {
@@ -81,9 +81,20 @@ namespace QuantAssembly.Strategy
             // 1. The take profit level was reached
             // 2. The exit condition was met
             // 3. The stop loss condition was met
-            return  EvaluateConditionGroup(strategy.StopLossConditions, marketData, histData, position) || 
-                    EvaluateConditionGroup(strategy.ExitConditions, marketData, histData, position) ||
-                    EvaluateConditionGroup(strategy.TakeProfitConditions, marketData, histData, position);
+            if (EvaluateConditionGroup(strategy.StopLossConditions, marketData, histData, position)) 
+            { 
+                return SignalType.StopLoss; 
+            } 
+            if (EvaluateConditionGroup(strategy.ExitConditions, marketData, histData, position)) 
+            { 
+                return SignalType.Exit; 
+            } 
+            if (EvaluateConditionGroup(strategy.TakeProfitConditions, marketData, histData, position)) 
+            { 
+                return SignalType.TakeProfit; 
+            }
+
+            return SignalType.None;
         }
 
         private bool ValidateStrategy(Strategy strategy)
@@ -190,8 +201,8 @@ namespace QuantAssembly.Strategy
                 StrategyProperty.ATR => histData.ATR,
                 StrategyProperty.HistoricalHigh => histData.HistoricalHigh,
                 StrategyProperty.HistoricalLow => histData.HistoricalLow,
-                StrategyProperty.ProfitPercentage => position.ProfitOrLoss > 0 ? (position.ProfitOrLoss/(position.OpenPrice*position.Quantity)) : 0,
-                StrategyProperty.LossPercentage => position.ProfitOrLoss < 0 ? Math.Abs(position.ProfitOrLoss/(position.OpenPrice*position.Quantity)) : 0,
+                StrategyProperty.ProfitPercentage => position.ProfitOrLoss > 0 ? ((position.ProfitOrLoss*100)/(position.OpenPrice*position.Quantity)) : 0,
+                StrategyProperty.LossPercentage => position.ProfitOrLoss < 0 ? ((position.ProfitOrLoss*100)/(position.OpenPrice*position.Quantity)) : 0,
                 _ => throw new InvalidOperationException("Invalid property")
             };
         }

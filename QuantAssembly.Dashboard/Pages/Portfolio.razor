@@ -51,6 +51,9 @@
             new PieChartDataset { Data = new List<double?> { openCount, closedCount } }
         };
         pieChartData = new ChartData { Datasets = dataSets, Labels = labels};
+        pieChartOptions = new();
+        pieChartOptions.Plugins.Legend.Position = "right";
+
     }
 
     private void PrepareChartSeriesAndLabels(IQueryable<Position> positions)
@@ -81,7 +84,6 @@
 
         lineChartOptions.Plugins.Title!.Text = "Cumulative Profit/Loss over time";
         lineChartOptions.Plugins.Title.Display = true;
-        pieChartOptions.Plugins.Legend.Position = "right";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

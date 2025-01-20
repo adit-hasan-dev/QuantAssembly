@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using QuantAssembly.BackTesting.DataProvider;
 using QuantAssembly.BackTesting.TradeManager;
 using QuantAssembly.BackTesting.Utility;
+using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Impl.AlpacaMarkets;
@@ -38,6 +39,7 @@ namespace QuantAssembly.BackTesting
         private ITradeManager tradeManager;
 
         private BacktestConfig backtestConfig;
+        private IList<BacktestReport> backtestReports = new List<BacktestReport>();
 
         public BackTestEngine(TimePeriod timePeriod, StepSize stepSize)
         {
@@ -84,6 +86,11 @@ namespace QuantAssembly.BackTesting
             }
 
             logger.LogInfo($"[BackTestEngine::Run] Completed backtesting period");
+            logger.LogInfo("Backtest Reports");
+            foreach (var report in backtestReports)
+            {
+                logger.LogInfo(report.ToString());
+            }
         }
 
         private async Task ProcessSignals(ILedger ledger, TimeMachine timeMachine, IAccountDataProvider accountDataProvider)
@@ -173,10 +180,11 @@ namespace QuantAssembly.BackTesting
 
             // Update current price according to latest market data for position
             position.CurrentPrice = marketData.LatestPrice;
-            if (strategyProcessor.ShouldClose(marketData, accountData, histData, position))
+            var exitSignal = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
+            if (exitSignal != SignalType.None)
             {
-                logger.LogInfo($"[BacktestEngine::ProcessExitSignal] Exit conditions met for position: {position}");
-
+                logger.LogInfo($"[BacktestEngine::ProcessExitSignal] Exit conditions met for position: {position}, signalType: {exitSignal}");
+                UpdateBacktestReport(exitSignal, position.StrategyName);
                 // For now, we don't engage the risk manager to close positions
                 // We just sell off the entire position
                 // TODO: Hard-coding in the order type as a market sell, need to support others
@@ -218,9 +226,12 @@ namespace QuantAssembly.BackTesting
         {
             logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Processing Entry Signals for {symbol}");
             var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-            if (strategyProcessor.ShouldOpen(marketData, accountData, histData, symbol))
+            var openSignal = strategyProcessor.EvaluateOpenSignal(marketData, accountData, histData, symbol);
+            if (openSignal != SignalType.None)
             {
+                logger.LogInfo($"[BacktestEngine::ProcessEntrySignal] Entry conditions met for symbol: {symbol}");
                 var position = PrepareOpenPosition(symbol, marketData);
+                UpdateBacktestReport(openSignal, position.StrategyName);
                 if (riskManager.ComputePositionSize(marketData, histData, accountData, position))
                 {
                     // TODO: Current only using market buys. Need to support other types like limit buys
@@ -275,6 +286,31 @@ namespace QuantAssembly.BackTesting
                 CurrentPrice = marketData.LatestPrice
             };
             return position;
+        }
+
+        private void UpdateBacktestReport(SignalType signalType, string strategyName)
+        {
+            var report = backtestReports.FirstOrDefault(r => r.StrategyName.Equals(strategyName, StringComparison.OrdinalIgnoreCase));
+            if (report == null) 
+            { 
+                report = new BacktestReport { StrategyName = strategyName }; 
+                backtestReports.Add(report); 
+            }
+            switch (signalType)
+            {
+                case SignalType.Exit:
+                    report.ExitConditionsHit++;
+                    break;
+                case SignalType.StopLoss:
+                    report.StopLossConditionsHit++;
+                    break;
+                case SignalType.TakeProfit:
+                    report.TakeProfitConditionsHit++;
+                    break;
+                case SignalType.Entry:
+                    report.EntryConditionsHit++;
+                    break;
+            }
         }
 
         private void Initialize()
