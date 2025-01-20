@@ -1,6 +1,8 @@
 @page "/dashboard"
 @using QuantAssembly.Dashboard.Components
 @inject LedgerService LedgerService
+@using Orientation = Microsoft.FluentUI.AspNetCore.Components.Orientation
+@using Position = QuantAssembly.Common.Models.Position
 
 <PageTitle>Dashboard</PageTitle>
 
@@ -11,7 +13,7 @@
     VerticalGap="20">
     <PositionTable Positions="positions" />
     <FluentDivider Orientation="Orientation.Horizontal" Style="width: 100%;" Role="DividerRole.Presentation"/>
-    <MudBlazor.MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="labels" InputData="counts"/>
+   <!-- #region  TODO:#region Pie chartLabels for counts-->
 </FluentStack>
 
 @code {

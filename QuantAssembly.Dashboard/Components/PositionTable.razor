@@ -1,3 +1,6 @@
+@using Orientation = Microsoft.FluentUI.AspNetCore.Components.Orientation
+@using Position = QuantAssembly.Common.Models.Position
+
 <FluentStack Orientation="Orientation.Vertical">
     
     <FluentStack FluentUI:Orientation="Orientation.Horizontal">
@@ -34,7 +37,7 @@
         <PropertyColumn Property="@(p => p.ClosePrice)" Sortable="true"/>
         <PropertyColumn Property="@(p => p.CurrentPrice)" Sortable="true"/>
         <PropertyColumn Property="@(p => p.Quantity)" Sortable="true"/>
-        <PropertyColumn Property="@(p => p.ProfitOrLoss)" Sortable="true"/>
+        <PropertyColumn Property="@(p => Math.Round(p.ProfitOrLoss, 2, MidpointRounding.AwayFromZero))" Sortable="true" Title="P/L"/>
         <PropertyColumn Property="@(p => p.StrategyName)" Sortable="true"/>
         @if (showStrategyDefinition)
         {

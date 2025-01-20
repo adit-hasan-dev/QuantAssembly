@@ -4,6 +4,10 @@ using QuantAssembly.Common.Models;
 
 public class LedgerService
 {
+    internal class PositionWrapper
+    {
+        public IList<Position> positions { get; set; }
+    }
     private IQueryable<Position> positions;
 
     public async Task LoadLedgerFileAsync(Stream fileStream)
@@ -12,8 +16,9 @@ public class LedgerService
             {
                 PropertyNameCaseInsensitive = true
             };
-            var positionList = await JsonSerializer.DeserializeAsync<List<Position>>(fileStream, options) ?? new List<Position>();
-            positions = positionList.ToArray().AsQueryable();
+            var positionWrapper = await JsonSerializer.DeserializeAsync<PositionWrapper>(fileStream, options);
+            var result = positionWrapper?.positions ?? new List<Position>();
+            positions = result.ToArray().AsQueryable();
     }
 
     public IQueryable<Position> GetAllPositions()

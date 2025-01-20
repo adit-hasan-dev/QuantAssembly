@@ -14,13 +14,7 @@ namespace QuantAssembly.Common.Models
         private double closePrice;
         private double currentPrice;
         private double profitOrLoss;
-
-        public Position(Guid? positionGuid = null)
-        {
-            this.PositionGuid = positionGuid ?? Guid.NewGuid();
-        }
-
-        public Guid PositionGuid { get; set; }
+        public Guid PositionGuid { get; set; } = Guid.NewGuid();
         public string PlatformOrderId { get; set; }
         public string Symbol { get; set; }
         public InstrumentType InstrumentType { get; set; } = InstrumentType.Stock;

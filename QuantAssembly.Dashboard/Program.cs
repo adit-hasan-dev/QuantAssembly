@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.FluentUI.AspNetCore.Components;
 using QuantAssembly.Dashboard;
-using MudBlazor.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -12,6 +11,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<LedgerService>();
 builder.Services.AddSingleton<AnalyticsService>();
 builder.Services.AddFluentUIComponents();
-builder.Services.AddMudServices();
+builder.Services.AddBlazorBootstrap();
 
 await builder.Build().RunAsync();

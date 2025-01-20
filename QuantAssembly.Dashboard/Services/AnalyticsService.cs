@@ -75,43 +75,46 @@ public class AnalyticsService
     public class StrategyCumulativeProfitLossData
     {
         public string StrategyName { get; set; }
-        public List<DateTime> Dates { get; set; }
+        public List<int> NumberOfTransactions { get; set; }
         public List<double> CumulativeProfits { get; set; }
     }
 
     public List<StrategyCumulativeProfitLossData> GetCumulativeProfitLossData(List<Position> positions)
     {
+        var openDateFallback = DateTime.Parse("0001-01-01T00:00:00");
         var strategyGroups = positions.GroupBy(p => p.StrategyName);
 
-        // Define the number of intervals for the x-axis
-        int numberOfIntervals = 12;
-
-        // Get the overall time range
-        var minDate = positions.Min(p => p.OpenTime);
-        var maxDate = positions.Max(p => p.OpenTime);
-
-        // Create a unified timeline with evenly spaced dates
-        var dateRange = Enumerable.Range(0, numberOfIntervals)
-                                  .Select(i => minDate.AddDays(i * (maxDate - minDate).TotalDays / (numberOfIntervals - 1)))
-                                  .ToList();
+        var maxTransactions = strategyGroups.Max(g => g.Count());
 
         var result = new List<StrategyCumulativeProfitLossData>();
+
         foreach (var group in strategyGroups)
         {
-            var cumulativeProfit = 0.0;
             var cumulativeProfits = new List<double>();
 
-            foreach (var date in dateRange)
+            // Process positions, using 'OpenTime' and fall back to 'openDateFallback' if 'CloseTime' is default
+            var sortedGroup = group.OrderBy(p => p.CloseTime == openDateFallback ? p.OpenTime : p.CloseTime);
+
+            foreach (var position in sortedGroup)
             {
-                var positionsAtDate = group.Where(p => p.OpenTime <= date).ToList();
-                cumulativeProfit = positionsAtDate.Sum(p => p.ProfitOrLoss);
+                var profitOrLoss = position.State == PositionState.Closed
+                    ? position.ProfitOrLoss  // Closed position
+                    : position.CurrentPrice - position.OpenPrice; // Open position
+
+                var cumulativeProfit = (cumulativeProfits.Count > 0 ? cumulativeProfits.Last() : 0) + profitOrLoss;
                 cumulativeProfits.Add(cumulativeProfit);
+            }
+
+            // If necessary, add 0 values to ensure all strategies have the same number of data points
+            for (int i = cumulativeProfits.Count; i < maxTransactions; i++)
+            {
+                cumulativeProfits.Add(cumulativeProfits.Last());
             }
 
             result.Add(new StrategyCumulativeProfitLossData
             {
                 StrategyName = group.Key,
-                Dates = dateRange,
+                NumberOfTransactions = Enumerable.Range(1, maxTransactions).ToList(),
                 CumulativeProfits = cumulativeProfits
             });
         }
