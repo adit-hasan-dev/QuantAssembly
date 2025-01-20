@@ -31,25 +31,71 @@
     </FluentDataGrid>
     <FluentDivider Orientation="Orientation.Horizontal" Style="width: 100%;" Role="DividerRole.Separator" />
     <!-- #region  Line chart-->
-
+    <div class="container-fluid overflow-x-auto">
+        <LineChart @ref="lineChart"/>
+    </div>
 </FluentStack>
 
 @code {
     private IQueryable<StrategyMetrics> strategiesMetrics;
-    private string[] chartLabels = {};
+
+    private LineChart lineChart = default!;
+    private LineChartOptions lineChartOptions = default!;
+    private ChartData chartData = default!;
+    private List<string> chartLabels = new List<string>();
+    private readonly int borderWidth = 2;
+    private readonly int hoverBorderWidth = 3;
 
     protected override void OnInitialized()
     {
         var positions = LedgerService.GetAllPositions().ToList();
         strategiesMetrics = AnalyticsService.GetStrategyMetrics(positions);
-        var chartData = AnalyticsService.GetCumulativeProfitLossData(positions);
-        PrepareChartSeriesAndLabels(chartData);
+        var peData = AnalyticsService.GetCumulativeProfitLossData(positions);
+        PrepareChartSeriesAndLabels(peData);
         StateHasChanged();
     }
 
     private void PrepareChartSeriesAndLabels(
-    List<AnalyticsService.StrategyCumulativeProfitLossData> data,
+    List<AnalyticsService.StrategyCumulativeProfitLossData> peData,
     int numberOfVisibleLabels = 12)
     {
+        var colors = ColorUtility.CategoricalTwelveColors;
+        int colorIndex = 0;
+        chartLabels = peData.First().NumberOfTransactions.Select(l => l.ToString()).ToList();
+        var dataSets = new List<IChartDataset>();
+        foreach (var strategy in peData)
+        {
+            var lineChartData = new LineChartDataset
+                {
+                    Label = strategy.StrategyName,
+                    BorderWidth = borderWidth,
+                    Data = strategy.CumulativeProfits.Select(d => (double?)d).ToList(),
+                    HoverBorderWidth = hoverBorderWidth,
+                    BackgroundColor = colors[0],
+                    BorderColor = colors[0],
+                };
+            dataSets.Add(lineChartData);
+            colorIndex++;
+        }
+        chartData = new ChartData { Datasets = dataSets, Labels = chartLabels };
+
+        lineChartOptions = new();
+        lineChartOptions.Responsive = true;
+        lineChartOptions.Interaction = new Interaction { Mode = InteractionMode.Index };
+
+        lineChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Number of Transactions", Display = true };
+        lineChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Cumulative P/E (USD)", Display = true };
+
+        lineChartOptions.Plugins.Title!.Text = "Cumulative Profit/Loss over # of transactions";
+        lineChartOptions.Plugins.Title.Display = true;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await lineChart.InitializeAsync(chartData, lineChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 }

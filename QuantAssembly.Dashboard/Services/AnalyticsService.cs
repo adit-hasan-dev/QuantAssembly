@@ -1,3 +1,4 @@
+using System.Globalization;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Dashboard.Models;
 
@@ -30,10 +31,23 @@ public class AnalyticsService
                     : 0;
                 var sharpeRatio = stdDevReturn > 0 ? Math.Round((avgReturn - riskFreeRate) / stdDevReturn, 2) : 0;
 
+                // Calculate Average Number of Positions Opened per Week
                 var firstOpenTime = strategyPositions.Min(p => p.OpenTime);
-                var weeks = (DateTime.Now - firstOpenTime).TotalDays / 7;
-                var averageNumberOfPositionsOpened = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == PositionState.Open) / weeks, 2) : 0;
-                var averageNumberOfPositionsClosed = weeks > 0 ? Math.Round(strategyPositions.Count(p => p.State == PositionState.Closed) / weeks, 2) : 0;
+                var totalWeeks = (DateTime.Now - firstOpenTime).TotalDays / 7;
+                var averageNumberOfPositionsOpened = totalWeeks > 0
+                    ? Math.Round(
+                        strategyPositions
+                            .GroupBy(p => CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(p.OpenTime, CalendarWeekRule.FirstFullWeek, DayOfWeek.Monday))
+                            .Average(g => g.Count()), 2)
+                    : 0;
+
+                // Calculate Average Number of Positions Closed per Week
+                var averageNumberOfPositionsClosed = totalWeeks > 0
+                    ? Math.Round(
+                        closedPositions
+                            .GroupBy(p => CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(p.CloseTime, CalendarWeekRule.FirstFullWeek, DayOfWeek.Monday))
+                            .Average(g => g.Count()), 2)
+                    : 0;
 
                 // Calculate Max Drawdown
                 var cumulativeProfit = 0.0;
