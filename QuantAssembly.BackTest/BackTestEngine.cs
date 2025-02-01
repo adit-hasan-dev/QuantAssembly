@@ -39,7 +39,7 @@ namespace QuantAssembly.BackTesting
         private ITradeManager tradeManager;
 
         private BacktestConfig backtestConfig;
-        private IList<BacktestReport> backtestReports = new List<BacktestReport>();
+        private BackTestSummary backtestSummary = new();
 
         public BackTestEngine(TimePeriod timePeriod, StepSize stepSize)
         {
@@ -79,18 +79,16 @@ namespace QuantAssembly.BackTesting
             logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {this.stepSize} and time period: {this.timePeriod}");
             var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
             var ledger = serviceProvider.GetRequiredService<ILedger>();
+            backtestSummary.InitialPortfolioValue = (await this.accountDataProvider.GetAccountDataAsync(config.AccountId)).TotalPortfolioValue;
             while (timeMachine.GetCurrentTime() < timeMachine.endTime)
             {
                 await ProcessSignals(ledger, timeMachine, this.accountDataProvider);
                 timeMachine.StepForward();
             }
+            backtestSummary.FinalPortfolioValue = (await this.accountDataProvider.GetAccountDataAsync(config.AccountId)).TotalPortfolioValue;
 
             logger.LogInfo($"[BackTestEngine::Run] Completed backtesting period");
-            logger.LogInfo("Backtest Reports");
-            foreach (var report in backtestReports)
-            {
-                logger.LogInfo(report.ToString());
-            }
+            logger.LogInfo(this.backtestSummary.ToString());
         }
 
         private async Task ProcessSignals(ILedger ledger, TimeMachine timeMachine, IAccountDataProvider accountDataProvider)
@@ -290,11 +288,11 @@ namespace QuantAssembly.BackTesting
 
         private void UpdateBacktestReport(SignalType signalType, string strategyName)
         {
-            var report = backtestReports.FirstOrDefault(r => r.StrategyName.Equals(strategyName, StringComparison.OrdinalIgnoreCase));
+            var report = this.backtestSummary.backtestStrategyReports.FirstOrDefault(r => r.StrategyName.Equals(strategyName, StringComparison.OrdinalIgnoreCase));
             if (report == null) 
             { 
-                report = new BacktestReport { StrategyName = strategyName }; 
-                backtestReports.Add(report); 
+                report = new BacktestStrategyReport { StrategyName = strategyName }; 
+                this.backtestSummary.backtestStrategyReports.Add(report); 
             }
             switch (signalType)
             {

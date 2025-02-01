@@ -8,7 +8,7 @@ namespace QuantAssembly.BackTesting
         public static async Task Main(string[] args)
         {
             var timePeriod = TimePeriod.OneYear;
-            var stepSize = StepSize.ThirtyMinutes;
+            var stepSize = StepSize.OneHour;
             var backTestEngine = new BackTestEngine(timePeriod, stepSize);
             await backTestEngine.Run();
         }
