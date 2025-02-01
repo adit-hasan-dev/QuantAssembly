@@ -76,3 +76,6 @@ The backtesting application currently does **not** simulate transaction costs an
 }
 ```
 
+## Future Improvements
+- Simulate transaction costs and slippage
+- Optimize performance
