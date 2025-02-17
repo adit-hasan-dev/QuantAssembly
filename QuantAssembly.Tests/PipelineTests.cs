@@ -63,7 +63,7 @@ namespace QuantAssembly.Tests
             serviceCollection.AddSingleton<ILogger, ConsoleLogger>();
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            var pipeline = new Pipeline<ToyContext>(serviceProvider)
+            var pipeline = new PipelineBuilder<ToyContext>(serviceProvider)
                 .AddStep<ToyStep1>()
                 .AddStep<ToyStep2>()
                 .Build();
