@@ -37,6 +37,7 @@ namespace QuantAssembly.BackTesting.Models
             foreach (var backtestStrategyReport in backtestStrategyReports)
             {
                 stringBuilder.AppendLine(backtestStrategyReport.ToString());
+                stringBuilder.AppendLine("");
             }
 
             return stringBuilder.ToString();

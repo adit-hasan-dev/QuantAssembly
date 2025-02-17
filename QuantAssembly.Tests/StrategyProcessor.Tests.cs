@@ -102,10 +102,10 @@ namespace QuantAssembly.Tests
             };
 
             // Act
-            bool result = strategyProcessor.ShouldOpen(marketData, accountData, histData, stockTicker);
+            SignalType result = strategyProcessor.EvaluateOpenSignal(marketData, accountData, histData, stockTicker);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.AreEqual(SignalType.Entry, result);
         }
 
         [TestMethod]
@@ -207,10 +207,10 @@ namespace QuantAssembly.Tests
             };
 
             // Act
-            bool result = strategyProcessor.ShouldClose(marketData, accountData, histData, position);
+            SignalType result = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.AreEqual(SignalType.Exit, result);
         }
 
 

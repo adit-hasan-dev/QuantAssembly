@@ -3,7 +3,8 @@ using QuantAssembly.DataProvider;
 using QuantAssembly.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.AlphaVantage;
 using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Logging;
+using QuantAssembly.Common.Logging;
+using QuantAssembly.Common.Config;
 
 namespace QuantAssembly.Tests
 {
@@ -14,7 +15,7 @@ namespace QuantAssembly.Tests
         [TestMethod]
         public async Task Test_AlphaVantageAPIClient()
         {
-            var config = new Config.Config();
+            var config = new Config();
             var logger = new Logger(config, isDevEnv: true);
             var apiKey = "key"; //config.APIKey;
             var alphaVantageClient = new AlphaVantageClient(logger, apiKey);
@@ -78,7 +79,7 @@ namespace QuantAssembly.Tests
         [TestMethod]
         public async Task Test_AlpacaMarketsClient()
         {
-            var config = new Config.Config();
+            var config = new Config();
             var logger = new Logger(config, isDevEnv: true);
             var alpacaMarketsClient = new AlpacaMarketsClient(config);
             var histDataProvider = new StockIndicatorsHistoricalDataProvider(alpacaMarketsClient, logger);
@@ -126,7 +127,7 @@ namespace QuantAssembly.Tests
         [TestMethod]
         public async Task Test_IBGWClient()
         {
-            var config = new Config.Config();
+            var config = new Config();
             var logger = new Logger(config, isDevEnv: true);
 
             var client = new IBGWClient(logger);
@@ -143,7 +144,7 @@ namespace QuantAssembly.Tests
         [TestMethod]
         public async Task Test_IBGWClient_ContractDetails()
         {
-            var config = new Config.Config();
+            var config = new Config();
             var logger = new Logger(config, isDevEnv: true);
 
             var client = new IBGWClient(logger);
