@@ -16,14 +16,13 @@ namespace QuantAssembly.Common.Pipeline
             this.logger = serviceProvider.GetRequiredService<ILogger>();
         }
 
-        public void Execute()
+        public async Task Execute()
         {
             RecreateContext();
             foreach (var step in steps)
             {
                 logger.LogDebug($"[Pipeline::Execute] Executing step: {step.GetType().Name}");
-                step.ValidatePrerequisites();
-                step.Execute(context, serviceProvider);
+                await  step.Execute(context, serviceProvider);
                 logger.LogDebug($"[Pipeline::Execute] Successfully executed step: {step.GetType().Name}");
             }
 

@@ -1,10 +1,8 @@
-using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Impl.AlpacaMarkets;
-using QuantAssembly.Impl.AlphaVantage;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
@@ -131,7 +129,7 @@ namespace QuantAssembly
             })
             .BuildServiceProvider();
         }
-
+        
         private async void ProcessSignals(ILedger ledger)
         {
             logger.LogInfo("[Quant::ProcessSignals] Processing Signals ...");

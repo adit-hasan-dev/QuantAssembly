@@ -11,6 +11,6 @@ namespace QuantAssembly.Strategy
         void SetStrategyStateForSymbol(string symbol, StrategyState state);
         IList<string> GetLoadedInstruments();
         SignalType EvaluateOpenSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, string symbol);
-        SignalType EvaluateCloseSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, Position position);
+        SignalType EvaluateCloseSignal(MarketData marketData, HistoricalMarketData histData, Position position);
     }
 }

@@ -1,14 +1,12 @@
 using System.Reflection;
-using System.Reflection.Metadata;
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Common.Pipeline
 {
     public class PipelineBuilder<TContext> where TContext : PipelineContext, new()
     {
         private List<Type> stepTypes = new List<Type>();
-        private Dictionary<string, Type> outputTypes = new Dictionary<string, Type>();
+        private HashSet<string> outputMembers = new HashSet<string>();
         private ServiceProvider serviceProvider;
 
         public PipelineBuilder(ServiceProvider serviceProvider)
@@ -18,40 +16,48 @@ namespace QuantAssembly.Common.Pipeline
 
         public PipelineBuilder<TContext> AddStep<TStep>() where TStep : IPipelineStep<TContext>, new()
         {
-            var attribute = Attribute.GetCustomAttribute(typeof(TStep), typeof(PipelineStepAttribute)) as PipelineStepAttribute;
-            if (attribute == null)
+            var stepType = typeof(TStep);
+            var stepAttribute = Attribute.GetCustomAttribute(stepType, typeof(PipelineStepAttribute)) as PipelineStepAttribute;
+            if (stepAttribute == null)
             {
                 throw new PipelineValidationException($"{nameof(TStep)} is not a valid pipeline step since it is missing the {nameof(PipelineStepAttribute)} attribute");
             }
+
+            var inputAttributes = stepType.GetCustomAttributes(typeof(PipelineStepInputAttribute), false) as PipelineStepInputAttribute[];
+            var outputAttributes = stepType.GetCustomAttributes(typeof(PipelineStepOutputAttribute), false) as PipelineStepOutputAttribute[];
+
+            var contextMembers = typeof(TContext)
+                .GetMembers(BindingFlags.Public | BindingFlags.Instance)
+                .Where(member => member.MemberType == MemberTypes.Property || member.MemberType == MemberTypes.Field)
+                .Select(member => member.Name)
+                .ToHashSet();
+            inputAttributes?.All(inputAttribute => contextMembers.Contains(inputAttribute.MemberName));
+            outputAttributes?.All(outputAttribute => contextMembers.Contains(outputAttribute.MemberName));
             
             // Check for input
             if (stepTypes.Count == 0)
             {
-                stepTypes.Add(typeof(TStep));
+                stepTypes.Add(stepType);
             }
             else
             {
-                // check if the input of TStep is provided by one of the previous steps
-                if (attribute.InputType != null && !string.IsNullOrEmpty(attribute.InputMemberName) &&
-                outputTypes.TryGetValue(attribute.InputMemberName, out var type) &&
-                attribute.InputType == type)
+                var inputAvailable = inputAttributes?.All(inputAttribute => outputMembers.Contains(inputAttribute.MemberName)) ?? false;
+                if (!inputAvailable)
                 {
-                    stepTypes.Add(typeof(TStep));
+                    throw new PipelineValidationException($"{nameof(TStep)} requires input members which are not supplied by any previous step");
                 }
-                else
-                {
-                    throw new PipelineValidationException($"{nameof(TStep)} requires input member {attribute.InputMemberName} of type {attribute.InputType} which is not supplied by any previous step");
-                }
+
+                stepTypes.Add(stepType);
             }
 
-            // Add output 
-            outputTypes.Add(attribute.OutputMemberName, attribute.OutputType);
+            // Add output
+            outputMembers.UnionWith(outputAttributes?.Select(outputAttribute => outputAttribute.MemberName) ?? new HashSet<string>());
+
             return this;
         }
 
         public Pipeline<TContext> Build()
         {
-            ValidateContextType();
             Pipeline<TContext> pipeline = new Pipeline<TContext>(serviceProvider);
             foreach (Type stepType in stepTypes)
             {
@@ -59,23 +65,6 @@ namespace QuantAssembly.Common.Pipeline
             }
 
             return pipeline;
-        }
-
-        private void ValidateContextType()
-        {
-            // Validate that the TContext object has all the output types as members
-            var contextMembers = typeof(TContext)
-                .GetMembers(BindingFlags.Public | BindingFlags.Instance)
-                .Where(member => member.MemberType == MemberTypes.Property || member.MemberType == MemberTypes.Field)
-                .ToDictionary(member => member.Name, member => member);
-
-            foreach (var memberName in outputTypes.Keys)
-            {
-                if (!contextMembers.ContainsKey(memberName))
-                {
-                    throw new PipelineValidationException($"Output member: {memberName} supplied by a step is not a member of {typeof(TContext)}");
-                }
-            }
         }
     }
 }

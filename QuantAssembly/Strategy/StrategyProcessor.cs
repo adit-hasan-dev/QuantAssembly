@@ -70,7 +70,7 @@ namespace QuantAssembly.Strategy
             return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData) ? SignalType.Entry : SignalType.None;
         }
 
-        public SignalType EvaluateCloseSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, Position position)
+        public SignalType EvaluateCloseSignal(MarketData marketData, HistoricalMarketData histData, Position position)
         {
             if (!strategies.TryGetValue(position.Symbol, out var strategy))
             {
