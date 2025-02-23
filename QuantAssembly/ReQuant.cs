@@ -7,6 +7,7 @@ using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Strategy;
 using QuantAssembly.Common.Pipeline;
+using QuantAssembly.RiskManagement;
 
 namespace QuantAssembly
 {
@@ -115,6 +116,11 @@ namespace QuantAssembly
                 var client = provider.GetRequiredService<IIBGWClient>();
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWMarketDataProvider(client, logger);
+            })
+            .AddSingleton<IRiskManager, PercentageAccountValueRiskManager>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger>();
+                return new PercentageAccountValueRiskManager(provider);
             })
             .BuildServiceProvider();
         }

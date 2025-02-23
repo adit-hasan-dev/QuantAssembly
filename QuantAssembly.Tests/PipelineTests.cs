@@ -11,39 +11,25 @@ namespace QuantAssembly.Tests
         public int OutputValue { get; set; }
     }
 
-    [PipelineStep(
-        InputType = typeof(Guid),
-        InputMemberName = nameof(ToyContext.Id),
-        OutputType = typeof(int),
-        OutputMemberName = nameof(ToyContext.IntermediateValue))]
+    [PipelineStep]
+    [PipelineStepInput(nameof(ToyContext.Id))]
+    [PipelineStepOutput(nameof(ToyContext.IntermediateValue))]
     public class ToyStep1 : IPipelineStep<ToyContext>
     {
-        public void Execute(ToyContext context, ServiceProvider serviceProvider)
+        public async Task Execute(ToyContext context, ServiceProvider serviceProvider)
         {
             context.IntermediateValue = context.InputValue * 2;
         }
-
-        public void ValidatePrerequisites()
-        {
-            // No prerequisites to validate for this toy step
-        }
     }
 
-    [PipelineStep(
-        InputType = typeof(int),
-        InputMemberName = nameof(ToyContext.IntermediateValue),
-        OutputType =typeof(int),
-        OutputMemberName =nameof(ToyContext.OutputValue))]
+    [PipelineStep]
+    [PipelineStepInput(nameof(ToyContext.IntermediateValue))]
+    [PipelineStepOutput(nameof(ToyContext.OutputValue))]
     public class ToyStep2 : IPipelineStep<ToyContext>
     {
-        public void Execute(ToyContext context, ServiceProvider serviceProvider)
+        public async Task Execute(ToyContext context, ServiceProvider serviceProvider)
         {
             context.OutputValue = context.IntermediateValue + 10;
-        }
-
-        public void ValidatePrerequisites()
-        {
-            // No prerequisites to validate for this toy step
         }
     }
 

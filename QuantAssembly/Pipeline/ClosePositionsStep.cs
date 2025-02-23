@@ -11,7 +11,9 @@ namespace QuantAssembly
 {
     [PipelineStep]
     [PipelineStepInput(nameof(QuantContext.signals))]
+    [PipelineStepInput(nameof(QuantContext.openPositions))]
     [PipelineStepOutput(nameof(QuantContext.transactions))]
+    [PipelineStepOutput(nameof(QuantContext.accountData))]
     public class ClosePositionsStep : IPipelineStep<QuantContext>
     {
         public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
@@ -34,6 +36,7 @@ namespace QuantAssembly
                 {
                     throw new PipelineException($"[{nameof(ClosePositionsStep)}] Position not found for signal: {signal}");
                 }
+                // TODO: Make OrderType configurable
                 var result = await tradeManager.ClosePositionAsync(position, OrderType.Market);
                 if (result?.TransactionState != TransactionState.Completed)
                 {

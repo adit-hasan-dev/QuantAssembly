@@ -207,7 +207,7 @@ namespace QuantAssembly.Tests
             };
 
             // Act
-            SignalType result = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
+            SignalType result = strategyProcessor.EvaluateCloseSignal(marketData, histData, position);
 
             // Assert
             Assert.AreEqual(SignalType.Exit, result);

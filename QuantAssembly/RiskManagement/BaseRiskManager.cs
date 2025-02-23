@@ -13,7 +13,7 @@ namespace QuantAssembly.RiskManagement
         protected readonly double maxDrawDownPercentage;
         protected readonly TConfig customConfig;
 
-        public BaseRiskManager(ServiceProvider serviceProvider)
+        public BaseRiskManager(IServiceProvider serviceProvider)
         {
             var config = serviceProvider.GetRequiredService<IConfig>();
             logger = serviceProvider.GetRequiredService<ILogger>();

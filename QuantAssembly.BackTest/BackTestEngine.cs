@@ -178,7 +178,7 @@ namespace QuantAssembly.BackTesting
 
             // Update current price according to latest market data for position
             position.CurrentPrice = marketData.LatestPrice;
-            var exitSignal = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
+            var exitSignal = strategyProcessor.EvaluateCloseSignal(marketData, histData, position);
             if (exitSignal != SignalType.None)
             {
                 logger.LogInfo($"[BacktestEngine::ProcessExitSignal] Exit conditions met for position: {position}, signalType: {exitSignal}");

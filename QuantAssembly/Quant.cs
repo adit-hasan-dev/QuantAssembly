@@ -229,7 +229,7 @@ namespace QuantAssembly
 
             // Update current price according to latest market data for position
             position.CurrentPrice = marketData.LatestPrice;
-            var closeSignal = strategyProcessor.EvaluateCloseSignal(marketData, accountData, histData, position);
+            var closeSignal = strategyProcessor.EvaluateCloseSignal(marketData, histData, position);
             if (closeSignal != SignalType.None)
             {
                 logger.LogInfo($"[Quant::ProcessExitSignal] Exit conditions met for position: {position}, SignalType: {closeSignal}");

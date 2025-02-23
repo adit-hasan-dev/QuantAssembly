@@ -40,7 +40,7 @@ namespace QuantAssembly
 
                 if (signalType == SignalType.Exit || signalType == SignalType.StopLoss || signalType == SignalType.TakeProfit)
                 {
-                    logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Entry conditions for symbol: {position.Symbol} met, SignalType: {signalType}");
+                    logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Exit conditions for symbol: {position.Symbol} met, SignalType: {signalType}");
                     exitSignals.Add(new Signal
                     {
                         SymbolName = position.Symbol,

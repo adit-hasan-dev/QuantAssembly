@@ -14,9 +14,10 @@ namespace QuantAssembly
     /// <summary>
     /// Responsible for setting up the initial state of the pipeline
     /// </summary>
-    /// TODO: Need to add support for multiple inputs and outputs
     [PipelineStep]
     [PipelineStepOutput(nameof(QuantContext.openPositions))]
+    [PipelineStepOutput(nameof(QuantContext.symbolsToEvaluate))]
+    [PipelineStepOutput(nameof(QuantContext.accountData))]
     public class InitStep : IPipelineStep<QuantContext>
     {
         public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
@@ -59,7 +60,6 @@ namespace QuantAssembly
             context.openPositions = filteredPositions;
 
             // Filter out invalid tickers for entry signals
-            // TODO: Register Riskmanager
             // Skip entry signals if risk manager says so
             var riskManager = serviceProvider.GetRequiredService<IRiskManager>();
             if (riskManager.shouldHaltNewTrades(context.accountData))
