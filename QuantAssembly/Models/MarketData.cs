@@ -19,7 +19,7 @@ namespace QuantAssembly.Models
     /// - The latest values for indicators are retrieved from appropriate data sources.
     /// - HistoricalHigh and HistoricalLow are calculated using price data for a specified period.
     /// </summary>
-    public class HistoricalMarketData
+    public class IndicatorData
     {
         /// <summary>
         /// Gets or sets the symbol of the financial instrument.

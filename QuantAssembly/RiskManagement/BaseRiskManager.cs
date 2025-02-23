@@ -35,7 +35,7 @@ namespace QuantAssembly.RiskManagement
         ///<inheritdoc/>
         public abstract bool ComputePositionSize(
             MarketData marketData,
-            HistoricalMarketData historicalMarketData,
+            IndicatorData IndicatorData,
             AccountData accountData,
             Position position);
 

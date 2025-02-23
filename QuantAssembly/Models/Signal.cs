@@ -17,6 +17,6 @@ namespace QuantAssembly.Models
         public Guid PositionGuid { get; set;} = Guid.Empty;
         public string SymbolName { get; set;} = string.Empty;
         public MarketData MarketData { get; set;} = new MarketData();
-        public HistoricalMarketData HistoricalMarketData { get; set;} = new HistoricalMarketData();
+        public IndicatorData IndicatorData { get; set;} = new IndicatorData();
     }
 }

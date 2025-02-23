@@ -24,7 +24,7 @@ namespace QuantAssembly
         private ServiceProvider serviceProvider;
         private IAccountDataProvider accountDataProvider;
         private IMarketDataProvider marketDataProvider;
-        private IHistoricalMarketDataProvider historicalMarketDataProvider;
+        private IIndicatorDataProvider IndicatorDataProvider;
 
         private IStrategyProcessor strategyProcessor;
         private IRiskManager riskManager;
@@ -57,7 +57,7 @@ namespace QuantAssembly
             }
             this.accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
             this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
-            this.historicalMarketDataProvider = serviceProvider.GetRequiredService<IHistoricalMarketDataProvider>();
+            this.IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
             this.riskManager = new PercentageAccountValueRiskManager(serviceProvider);
             this.tradeManager = new IBGWTradeManager(serviceProvider);
             pollingIntervalInMs = config.PollingIntervalInMs;
@@ -108,11 +108,11 @@ namespace QuantAssembly
                 var config = provider.GetRequiredService<IConfig>();
                 return new AlpacaMarketsClient(config);
             })
-            .AddSingleton<IHistoricalMarketDataProvider, StockIndicatorsHistoricalDataProvider>(provider =>
+            .AddSingleton<IIndicatorDataProvider, StockIndicatorsDataProvider>(provider =>
             {
                 var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
                 var logger = provider.GetRequiredService<ILogger>();
-                return new StockIndicatorsHistoricalDataProvider(alpacaClient, logger);
+                return new StockIndicatorsDataProvider(alpacaClient, logger);
             })
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider =>
             {
@@ -183,7 +183,7 @@ namespace QuantAssembly
                 if (strategy.State != StrategyState.Halted)
                 {
                     var marketData = await marketDataProvider.GetMarketDataAsync(position.Symbol);
-                    var histData = historicalMarketDataProvider.GetHistoricalDataAsync(position.Symbol).Result;
+                    var histData = IndicatorDataProvider.GetIndicatorDataAsync(position.Symbol).Result;
                     ProcessExitSignal(position, marketData, histData);
                 }
                 else
@@ -212,7 +212,7 @@ namespace QuantAssembly
                 if (strategy.State == StrategyState.Active)
                 {
                     var marketData = await marketDataProvider.GetMarketDataAsync(symbol);
-                    var histData = historicalMarketDataProvider.GetHistoricalDataAsync(symbol).Result;
+                    var histData = IndicatorDataProvider.GetIndicatorDataAsync(symbol).Result;
                     ProcessEntrySignal(symbol, positionsOpened, marketData, histData);
                 }
                 else
@@ -222,7 +222,7 @@ namespace QuantAssembly
             }
         }
 
-        private async void ProcessExitSignal(Position position, MarketData marketData, HistoricalMarketData histData)
+        private async void ProcessExitSignal(Position position, MarketData marketData, IndicatorData histData)
         {
             logger.LogInfo($"[Quant::ProcessExitSignal] Processing exit signals for {position.Symbol}");
             accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
@@ -271,7 +271,7 @@ namespace QuantAssembly
             logger.LogInfo($"[Quant::ProcessExitSignal] Successfully processed exit signals for position: {position}");
         }
 
-        private async void ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, HistoricalMarketData histData)
+        private async void ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, IndicatorData histData)
         {
             logger.LogInfo($"[Quant::ProcessEntrySignal] Processing Entry Signals for {symbol}");
             accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);

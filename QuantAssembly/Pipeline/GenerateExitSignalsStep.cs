@@ -25,7 +25,7 @@ namespace QuantAssembly
             logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Started generating exit signals");
             
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
-            var historicalMarketDataProvider = serviceProvider.GetRequiredService<IHistoricalMarketDataProvider>();
+            var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
             var config = serviceProvider.GetRequiredService<IConfig>();
             
             List<Signal> exitSignals = new List<Signal>();
@@ -33,10 +33,10 @@ namespace QuantAssembly
             foreach (var position in context.openPositions)
             {
                 var marketData = await marketDataProvider.GetMarketDataAsync(position.Symbol);
-                var historicalData = await historicalMarketDataProvider.GetHistoricalDataAsync(position.Symbol);
+                var indicatorData = await IndicatorDataProvider.GetIndicatorDataAsync(position.Symbol);
                 position.CurrentPrice = marketData.LatestPrice;
 
-                var signalType = context!.strategyProcessor!.EvaluateCloseSignal(marketData, historicalData, position);
+                var signalType = context!.strategyProcessor!.EvaluateCloseSignal(marketData, indicatorData, position);
 
                 if (signalType == SignalType.Exit || signalType == SignalType.StopLoss || signalType == SignalType.TakeProfit)
                 {
@@ -46,7 +46,7 @@ namespace QuantAssembly
                         SymbolName = position.Symbol,
                         Type = signalType,
                         MarketData = marketData,
-                        HistoricalMarketData = historicalData,
+                        IndicatorData = indicatorData,
                         PositionGuid = position.PositionGuid
                     });
                 }

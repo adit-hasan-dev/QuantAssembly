@@ -13,12 +13,12 @@ using IQuote = Alpaca.Markets.IQuote;
 
 namespace QuantAssembly.BackTesting.DataProvider
 {
-    public class BacktestMarketDataProvider : IHistoricalMarketDataProvider, IMarketDataProvider
+    public class BacktestMarketDataProvider : IIndicatorDataProvider, IMarketDataProvider
     {
         private readonly TimeMachine timeMachine;
         private readonly Dictionary<string, List<IBar>> historicalDataCache = new();
         private readonly Dictionary<string, MarketData> marketDataCache = new();
-        private readonly Dictionary<string, IList<TimestampedHistoricalMarketData>> historicalIndicatorDataCache = new();
+        private readonly Dictionary<string, IList<TimestampedIndicatorData>> historicalIndicatorDataCache = new();
         private readonly AlpacaMarketsClient alpacaClient;
         private readonly List<string> tickers;
         private bool isInitialized = false;
@@ -26,10 +26,10 @@ namespace QuantAssembly.BackTesting.DataProvider
         private readonly IConfig config;
         private readonly int precomputeTaskBatchSize = 100;
 
-        private class TimestampedHistoricalMarketData
+        private class TimestampedIndicatorData
         {
             public DateTime Timestamp { get; set; }
-            public HistoricalMarketData Data { get; set; }
+            public IndicatorData Data { get; set; }
         }
 
         public BacktestMarketDataProvider(
@@ -45,7 +45,7 @@ namespace QuantAssembly.BackTesting.DataProvider
             this.config = config;
         }
 
-        public async Task<HistoricalMarketData> GetHistoricalDataAsync(string ticker)
+        public async Task<IndicatorData> GetIndicatorDataAsync(string ticker)
         {
             if (!isInitialized)
             {
@@ -104,7 +104,7 @@ namespace QuantAssembly.BackTesting.DataProvider
                 {
                     logger.LogInfo($"[BacktestMarketDataProvider::Inititalize] Getting historical price data for ticker: {ticker}, time period: {timeMachine.timePeriod} and step size: {timeMachine.stepSize}");
                     var historicalDataStartTime = timeMachine.startTime.Subtract(TimeSpan.FromDays(365));
-                    var historicalData = await this.alpacaClient.GetHistoricalDataAsync<IBar>(ticker, historicalDataStartTime, timeMachine.endTime, StepSize.ThirtyMinutes);
+                    var historicalData = await this.alpacaClient.GetIndicatorDataAsync<IBar>(ticker, historicalDataStartTime, timeMachine.endTime, StepSize.ThirtyMinutes);
                     historicalDataCache[ticker] = historicalData.ToList();
                     marketDataCache[ticker] = new MarketData
                     {
@@ -135,8 +135,8 @@ namespace QuantAssembly.BackTesting.DataProvider
         private async Task PreComputeHistoricalIndicators(string ticker, TimeMachine timeMachine, IProgress<int> progress)
         {
             var cacheFilePath = $"{config.CacheFolderPath}/{ticker}_{timeMachine.timePeriod}_{timeMachine.stepSize}_HistoricalIndicatorsCache.json";
-            var cachedData = await CacheHelper.LoadFromCacheAsync<List<TimestampedHistoricalMarketData>>(cacheFilePath);
-            var dataList = new ConcurrentBag<TimestampedHistoricalMarketData>(cachedData ?? new List<TimestampedHistoricalMarketData>());
+            var cachedData = await CacheHelper.LoadFromCacheAsync<List<TimestampedIndicatorData>>(cacheFilePath);
+            var dataList = new ConcurrentBag<TimestampedIndicatorData>(cachedData ?? new List<TimestampedIndicatorData>());
 
             DateTime lastComputedTime = DateTime.MinValue;
             if (cachedData != null && cachedData.Count > 0)
@@ -170,7 +170,7 @@ namespace QuantAssembly.BackTesting.DataProvider
                         {
                             var historicalData = historicalDataCache[ticker].Where(bar => bar.TimeUtc <= currentTime).ToList();
                             var indicatorData = ComputeIndicators(ticker, historicalData);
-                            dataList.Add(new TimestampedHistoricalMarketData
+                            dataList.Add(new TimestampedIndicatorData
                             {
                                 Timestamp = currentTime,
                                 Data = indicatorData
@@ -210,7 +210,7 @@ namespace QuantAssembly.BackTesting.DataProvider
             logger.LogDebug($"Cache saved for {ticker} with {timeMachine.timePeriod} and {timeMachine.stepSize}");
         }
 
-        private HistoricalMarketData ComputeIndicators(string ticker, IList<IBar> historicalData)
+        private IndicatorData ComputeIndicators(string ticker, IList<IBar> historicalData)
         {
             var quotes = historicalData.Select(bar => new Quote
             {
@@ -236,7 +236,7 @@ namespace QuantAssembly.BackTesting.DataProvider
             var historicalHigh = quotes.Max(q => q.High);
             var historicalLow = quotes.Min(q => q.Low);
 
-            var data = new HistoricalMarketData
+            var data = new IndicatorData
             {
                 Symbol = ticker,
                 RSI = rsi,

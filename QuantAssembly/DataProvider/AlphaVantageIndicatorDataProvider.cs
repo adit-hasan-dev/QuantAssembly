@@ -6,22 +6,22 @@ using QuantAssembly.Models;
 
 namespace QuantAssembly.DataProvider
 {
-    public class AlphaVantageHistoricalMarketDataProvider : IHistoricalMarketDataProvider
+    public class AlphaVantageIndicatorDataProvider : IIndicatorDataProvider
     {
         private readonly AlphaVantageClient alphaVantageClient;
         private readonly ILogger logger;
 
-        public AlphaVantageHistoricalMarketDataProvider(AlphaVantageClient alphaVantageClient, ILogger logger)
+        public AlphaVantageIndicatorDataProvider(AlphaVantageClient alphaVantageClient, ILogger logger)
         {
             this.alphaVantageClient = alphaVantageClient;
             this.logger = logger;
         }
 
-        public async Task<HistoricalMarketData> GetHistoricalDataAsync(string symbol)
+        public async Task<IndicatorData> GetIndicatorDataAsync(string symbol)
         {
             try
             {
-                logger.LogInfo($"Fetching historical market data for {symbol}.");
+                logger.LogInfo($"Fetching indicator market data for {symbol}.");
 
                 var rsi = await alphaVantageClient.GetRSIAsync(symbol);
                 var sma50 = await alphaVantageClient.GetSMAAsync(symbol, 50);
@@ -32,7 +32,7 @@ namespace QuantAssembly.DataProvider
                 var atr = await alphaVantageClient.GetATRAsync(symbol);
                 var (historicalHigh, historicalLow) = await alphaVantageClient.GetHistoricalHighLowAsync(symbol);
 
-                var historicalMarketData = new HistoricalMarketData
+                var IndicatorData = new IndicatorData
                 {
                     Symbol = symbol,
                     RSI = rsi,
@@ -48,12 +48,12 @@ namespace QuantAssembly.DataProvider
                     HistoricalLow = historicalLow
                 };
 
-                logger.LogInfo($"Successfully fetched and populated historical market data for {symbol}");
-                return historicalMarketData;
+                logger.LogInfo($"Successfully fetched and populated indicator market data for {symbol}");
+                return IndicatorData;
             }
             catch (Exception ex)
             {
-                logger.LogError($"Error fetching historical market data for {symbol}: {ex.Message}");
+                logger.LogError($"Error fetching indicator market data for {symbol}: {ex.Message}");
                 logger.LogError(ex);
                 throw;
             }

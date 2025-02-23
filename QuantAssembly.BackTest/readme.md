@@ -38,7 +38,7 @@ The backtesting application currently does **not** simulate transaction costs an
 
     Note: These parameters will likely be moved soon to being command line params or in the configuration file.
 
-- **BacktestMarketDataProvider**: This implements both **IMarketDataProvider** and **IHistoricalMarketDataProvider** and uses data generated during the precompute step to simulate the data providers. 
+- **BacktestMarketDataProvider**: This implements both **IMarketDataProvider** and **IIndicatorDataProvider** and uses data generated during the precompute step to simulate the data providers. 
 
 ## Example appsettings.json file
 

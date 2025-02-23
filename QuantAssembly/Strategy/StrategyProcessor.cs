@@ -59,7 +59,7 @@ namespace QuantAssembly.Strategy
         }
 
 
-        public SignalType EvaluateOpenSignal(MarketData marketData, AccountData accountData, HistoricalMarketData histData, string stockTicker)
+        public SignalType EvaluateOpenSignal(MarketData marketData, AccountData accountData, IndicatorData histData, string stockTicker)
         {
             if (!strategies.TryGetValue(stockTicker, out var strategy))
             {
@@ -70,7 +70,7 @@ namespace QuantAssembly.Strategy
             return EvaluateConditionGroup(strategy.EntryConditions, marketData, histData) ? SignalType.Entry : SignalType.None;
         }
 
-        public SignalType EvaluateCloseSignal(MarketData marketData, HistoricalMarketData histData, Position position)
+        public SignalType EvaluateCloseSignal(MarketData marketData, IndicatorData histData, Position position)
         {
             if (!strategies.TryGetValue(position.Symbol, out var strategy))
             {
@@ -127,7 +127,7 @@ namespace QuantAssembly.Strategy
                    IsValidConditionGroup(strategy.TakeProfitConditions);
         }
 
-        private bool EvaluateConditionGroup(ConditionGroup group, MarketData marketData, HistoricalMarketData histData, Position position = null)
+        private bool EvaluateConditionGroup(ConditionGroup group, MarketData marketData, IndicatorData histData, Position position = null)
         {
             if (group == null || !group.Conditions.Any()) return false;
 
@@ -151,7 +151,7 @@ namespace QuantAssembly.Strategy
             return result;
         }
 
-        private bool EvaluateCondition(IStrategyCondition condition, MarketData marketData, HistoricalMarketData histData, Position position = null)
+        private bool EvaluateCondition(IStrategyCondition condition, MarketData marketData, IndicatorData histData, Position position = null)
         {
             if (condition is PropertyToValueComparator valueComparator)
             {
@@ -183,7 +183,7 @@ namespace QuantAssembly.Strategy
             throw new InvalidOperationException("Unknown condition type");
         }
 
-        private double GetPropertyValue(MarketData marketData, HistoricalMarketData histData, StrategyProperty property, Position position = null)
+        private double GetPropertyValue(MarketData marketData, IndicatorData histData, StrategyProperty property, Position position = null)
         {
             return property switch
             {

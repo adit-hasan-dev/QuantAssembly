@@ -33,7 +33,7 @@ namespace QuantAssembly.BackTesting
         private ILogger logger;
         private IStrategyProcessor strategyProcessor;
         private IMarketDataProvider marketDataProvider;
-        private IHistoricalMarketDataProvider historicalMarketDataProvider;
+        private IIndicatorDataProvider IndicatorDataProvider;
         private IRiskManager riskManager;
         private IAccountDataProvider accountDataProvider;
         private ITradeManager tradeManager;
@@ -68,7 +68,7 @@ namespace QuantAssembly.BackTesting
 
             this.accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
             this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
-            this.historicalMarketDataProvider = serviceProvider.GetRequiredService<IHistoricalMarketDataProvider>();
+            this.IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
             this.riskManager = new PercentageAccountValueRiskManager(serviceProvider);
             this.tradeManager = serviceProvider.GetRequiredService<ITradeManager>();
             logger.LogInfo("Successfully initialized BackTestEngine.");
@@ -129,7 +129,7 @@ namespace QuantAssembly.BackTesting
                 if (strategy.State != StrategyState.Halted)
                 {
                     var marketData = await marketDataProvider.GetMarketDataAsync(position.Symbol);
-                    var histData = await historicalMarketDataProvider.GetHistoricalDataAsync(position.Symbol);
+                    var histData = await IndicatorDataProvider.GetIndicatorDataAsync(position.Symbol);
                     await ProcessExitSignal(position, marketData, histData);
                 }
                 else
@@ -158,10 +158,10 @@ namespace QuantAssembly.BackTesting
                 if (strategy.State == StrategyState.Active)
                 {
                     MarketData marketData = null;
-                    HistoricalMarketData histData = null;
+                    IndicatorData histData = null;
 
                     marketData = await marketDataProvider.GetMarketDataAsync(symbol);
-                    histData = await historicalMarketDataProvider.GetHistoricalDataAsync(symbol);
+                    histData = await IndicatorDataProvider.GetIndicatorDataAsync(symbol);
                     await ProcessEntrySignal(symbol, positionsOpened, marketData, histData);
                 }
                 else
@@ -171,7 +171,7 @@ namespace QuantAssembly.BackTesting
             }
         }
 
-        private async Task ProcessExitSignal(Position position, MarketData marketData, HistoricalMarketData histData)
+        private async Task ProcessExitSignal(Position position, MarketData marketData, IndicatorData histData)
         {
             logger.LogDebug($"[BacktestEngine::ProcessExitSignal] Processing exit signals for {position.Symbol}");
             var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
@@ -220,7 +220,7 @@ namespace QuantAssembly.BackTesting
             logger.LogDebug($"[BacktestEngine::ProcessExitSignal] Successfully processed exit signals for position: {position}");
         }
 
-        private async Task ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, HistoricalMarketData histData)
+        private async Task ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, IndicatorData histData)
         {
             logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Processing Entry Signals for {symbol}");
             var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
@@ -344,7 +344,7 @@ namespace QuantAssembly.BackTesting
                 var config = provider.GetRequiredService<IConfig>();
                 return new BacktestMarketDataProvider(timeMachine, alpacaClient, logger, config);
             })
-            .AddSingleton<IHistoricalMarketDataProvider, BacktestMarketDataProvider>(provider =>
+            .AddSingleton<IIndicatorDataProvider, BacktestMarketDataProvider>(provider =>
             {
                 return provider.GetRequiredService<BacktestMarketDataProvider>();
             })

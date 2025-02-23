@@ -24,7 +24,7 @@ namespace QuantAssembly
                 signal => signal.Type == SignalType.Entry)
                 .Select(signal => {
                     var position = PrepareOpenPosition(context, signal.SymbolName, signal.MarketData);
-                    if (!riskManager.ComputePositionSize(signal.MarketData, signal.HistoricalMarketData, context.accountData, position))
+                    if (!riskManager.ComputePositionSize(signal.MarketData, signal.IndicatorData, context.accountData, position))
                     {
                         logger.LogInfo($"[{nameof(RiskManagementStep)}] Appropriate resources not available to open position:\n {position}");
                     }

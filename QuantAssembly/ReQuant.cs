@@ -98,11 +98,11 @@ namespace QuantAssembly
                 var config = provider.GetRequiredService<IConfig>();
                 return new AlpacaMarketsClient(config);
             })
-            .AddSingleton<IHistoricalMarketDataProvider, StockIndicatorsHistoricalDataProvider>(provider =>
+            .AddSingleton<IIndicatorDataProvider, StockIndicatorsDataProvider>(provider =>
             {
                 var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
                 var logger = provider.GetRequiredService<ILogger>();
-                return new StockIndicatorsHistoricalDataProvider(alpacaClient, logger);
+                return new StockIndicatorsDataProvider(alpacaClient, logger);
             })
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider =>
             {

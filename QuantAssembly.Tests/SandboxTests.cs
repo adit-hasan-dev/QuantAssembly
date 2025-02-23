@@ -82,12 +82,12 @@ namespace QuantAssembly.Tests
             var config = new Config();
             var logger = new Logger(config, isDevEnv: true);
             var alpacaMarketsClient = new AlpacaMarketsClient(config);
-            var histDataProvider = new StockIndicatorsHistoricalDataProvider(alpacaMarketsClient, logger);
+            var histDataProvider = new StockIndicatorsDataProvider(alpacaMarketsClient, logger);
             var ticker = "AAPL";
 
             try
             {
-                var indicators = await histDataProvider.GetHistoricalDataAsync(ticker);
+                var indicators = await histDataProvider.GetIndicatorDataAsync(ticker);
 
                 // Compute MACD and Signal Line
 

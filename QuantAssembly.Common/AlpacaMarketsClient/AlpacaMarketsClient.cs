@@ -27,7 +27,7 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             }
         }
 
-        public async Task<IEnumerable<T>> GetHistoricalDataAsync<T>(
+        public async Task<IEnumerable<T>> GetIndicatorDataAsync<T>(
             string symbol,
             DateTime? startTime = null,
             DateTime? endTime = null,

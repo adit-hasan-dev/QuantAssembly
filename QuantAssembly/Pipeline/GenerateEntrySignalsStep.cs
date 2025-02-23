@@ -23,7 +23,7 @@ namespace QuantAssembly
             logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Started generating entry signals");
 
             var marketDataProvider = serviceProvider.GetService<IMarketDataProvider>();
-            var historicalMarketDataProvider = serviceProvider.GetRequiredService<IHistoricalMarketDataProvider>();
+            var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
             var ledger = serviceProvider.GetService<ILedger>();
             var config = serviceProvider.GetService<IConfig>();
 
@@ -32,7 +32,7 @@ namespace QuantAssembly
             foreach (var symbol in context.symbolsToEvaluate)
             {
                 var marketData = await marketDataProvider.GetMarketDataAsync(symbol);
-                var histData = await historicalMarketDataProvider.GetHistoricalDataAsync(symbol);
+                var histData = await IndicatorDataProvider.GetIndicatorDataAsync(symbol);
                 var signalType = context.strategyProcessor.EvaluateOpenSignal(marketData, context.accountData, histData, symbol);
                 if (signalType == SignalType.Entry)
                 {
@@ -42,7 +42,7 @@ namespace QuantAssembly
                         SymbolName = symbol,
                         Type = signalType,
                         MarketData = marketData,
-                        HistoricalMarketData = histData
+                        IndicatorData = histData
                     });
                 }
             }

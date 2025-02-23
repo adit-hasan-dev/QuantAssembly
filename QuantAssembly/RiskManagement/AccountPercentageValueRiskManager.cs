@@ -19,7 +19,7 @@ namespace QuantAssembly.RiskManagement
         ///<inheritdoc/>
         public override bool ComputePositionSize(
             MarketData marketData,
-            HistoricalMarketData historicalMarketData,
+            IndicatorData IndicatorData,
             AccountData accountData,
             Position position)
         {

@@ -86,7 +86,7 @@ namespace QuantAssembly.Tests
                 AskPrice = 155
             };
 
-            HistoricalMarketData histData = new HistoricalMarketData
+            IndicatorData histData = new IndicatorData
             {
                 MACD = 1.5,
                 Signal = 2.0,
@@ -191,7 +191,7 @@ namespace QuantAssembly.Tests
                 AskPrice = 155
             };
 
-            HistoricalMarketData histData = new HistoricalMarketData
+            IndicatorData histData = new IndicatorData
             {
                 MACD = 1.5,
                 Signal = 2.0,

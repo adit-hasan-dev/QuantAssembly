@@ -6,22 +6,22 @@ using Alpaca.Markets;
 
 namespace QuantAssembly.DataProvider
 {
-    public class StockIndicatorsHistoricalDataProvider : IHistoricalMarketDataProvider
+    public class StockIndicatorsDataProvider : IIndicatorDataProvider
     {
         private readonly AlpacaMarketsClient alpacaDataClient;
         private readonly ILogger logger;
 
-        public StockIndicatorsHistoricalDataProvider(AlpacaMarketsClient alpacaDataClient, ILogger logger)
+        public StockIndicatorsDataProvider(AlpacaMarketsClient alpacaDataClient, ILogger logger)
         {
             this.alpacaDataClient = alpacaDataClient;
             this.logger = logger;
         }
 
-        public async Task<HistoricalMarketData> GetHistoricalDataAsync(string ticker)
+        public async Task<IndicatorData> GetIndicatorDataAsync(string ticker)
         {
-            var historicalData = await alpacaDataClient.GetHistoricalDataAsync<IBar>(ticker);
+            var indicatorData = await alpacaDataClient.GetIndicatorDataAsync<IBar>(ticker);
 
-            var quotes = historicalData
+            var quotes = indicatorData
                 .Select(bar => new Quote
                 {
                     Date = bar.TimeUtc,
@@ -47,7 +47,7 @@ namespace QuantAssembly.DataProvider
             var historicalHigh = quotes.Max(q => q.High);
             var historicalLow = quotes.Min(q => q.Low);
 
-            return new HistoricalMarketData
+            return new IndicatorData
             {
                 Symbol = ticker,
                 RSI = rsi,
