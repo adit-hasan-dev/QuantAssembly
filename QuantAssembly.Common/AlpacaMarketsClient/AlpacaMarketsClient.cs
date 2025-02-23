@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Alpaca.Markets;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
