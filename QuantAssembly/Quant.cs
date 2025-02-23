@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Impl.AlpacaMarkets;
+using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;

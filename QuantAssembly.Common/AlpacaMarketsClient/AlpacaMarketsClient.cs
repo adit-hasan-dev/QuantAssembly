@@ -3,7 +3,7 @@ using Alpaca.Markets;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
 
-namespace QuantAssembly.Impl.AlpacaMarkets
+namespace QuantAssembly.Common.Impl.AlpacaMarkets
 {
     public class AlpacaMarketsClientConfig
     {

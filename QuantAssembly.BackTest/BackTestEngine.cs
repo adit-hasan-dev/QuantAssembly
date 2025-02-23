@@ -6,7 +6,7 @@ using QuantAssembly.BackTesting.Utility;
 using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Impl.AlpacaMarkets;
+using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
@@ -340,7 +340,7 @@ namespace QuantAssembly.BackTesting
             .AddSingleton<BacktestMarketDataProvider>(provider =>
             {
                 var timeMachine = provider.GetRequiredService<TimeMachine>();
-                var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
+                var alpacaClient = provider.GetRequiredService<Common.Impl.AlpacaMarkets.AlpacaMarketsClient>();
                 var config = provider.GetRequiredService<IConfig>();
                 return new BacktestMarketDataProvider(timeMachine, alpacaClient, logger, config);
             })

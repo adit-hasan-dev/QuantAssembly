@@ -1,4 +1,4 @@
-using QuantAssembly.Impl.AlpacaMarkets;
+using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
 using Skender.Stock.Indicators;
