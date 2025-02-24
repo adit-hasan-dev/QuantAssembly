@@ -10,7 +10,7 @@ namespace QuantAssembly.Common.Logging
         private bool _isDebugEnabled = false;
         private bool isDevEnv = false;
 
-        public Logger(IConfig config, bool isDevEnv = false)
+        public Logger(BaseConfig config, bool isDevEnv = false)
         {
             var dateSuffix = DateTime.Now.ToString("yyyyMMdd");
             _logFile = $"{config.LogFilePath}_{dateSuffix}.log";

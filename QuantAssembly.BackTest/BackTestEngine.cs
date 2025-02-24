@@ -29,7 +29,7 @@ namespace QuantAssembly.BackTesting
         private ServiceProvider serviceProvider;
         private TimePeriod timePeriod;
         private StepSize stepSize;
-        private IConfig config;
+        private Config config;
         private ILogger logger;
         private IStrategyProcessor strategyProcessor;
         private IMarketDataProvider marketDataProvider;
@@ -48,7 +48,6 @@ namespace QuantAssembly.BackTesting
 
             Initialize();
             logger = serviceProvider.GetRequiredService<ILogger>();
-            config = serviceProvider.GetRequiredService<IConfig>();
             logger.LogInfo("Initializing BacktestEngine...");
             // Load all strategies
 
@@ -313,24 +312,29 @@ namespace QuantAssembly.BackTesting
 
         private void Initialize()
         {
+            config = ConfigurationLoader.LoadConfiguration<Config>();
             var services = new ServiceCollection();
             serviceProvider = services
-            .AddSingleton<IConfig, Config>()
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                var config = provider.GetRequiredService<IConfig>();
                 return new Logger(config, isDevEnv: false);
             })
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
-                var config = provider.GetRequiredService<IConfig>();
                 return new Ledger.Ledger(config, logger);
             })
             .AddSingleton<AlpacaMarketsClient>(provider =>
             {
-                var config = provider.GetRequiredService<IConfig>();
-                return new AlpacaMarketsClient(config);
+                if (config.CustomProperties.TryGetValue(nameof(AlpacaMarketsClientConfig), out var alpacaConfigJson))
+                {
+                    var alpacaConfig = JsonConvert.DeserializeObject<AlpacaMarketsClientConfig>(alpacaConfigJson.ToString());
+                    return new AlpacaMarketsClient(alpacaConfig);
+                }
+                else
+                {
+                    throw new Exception("AlpacaMarketsClientConfig not found in config");
+                }
             })
             .AddSingleton<TimeMachine>(provider =>
             {
@@ -340,9 +344,9 @@ namespace QuantAssembly.BackTesting
             .AddSingleton<BacktestMarketDataProvider>(provider =>
             {
                 var timeMachine = provider.GetRequiredService<TimeMachine>();
-                var alpacaClient = provider.GetRequiredService<Common.Impl.AlpacaMarkets.AlpacaMarketsClient>();
-                var config = provider.GetRequiredService<IConfig>();
-                return new BacktestMarketDataProvider(timeMachine, alpacaClient, logger, config);
+                var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
+
+                return new BacktestMarketDataProvider(timeMachine, alpacaClient, logger, config.CacheFolderPath, config.TickerStrategyMap.Keys.ToList());
             })
             .AddSingleton<IIndicatorDataProvider, BacktestMarketDataProvider>(provider =>
             {
@@ -354,7 +358,6 @@ namespace QuantAssembly.BackTesting
             })
             .AddSingleton<IAccountDataProvider, BacktestAccountDataProvider>(provider =>
             {
-                var config = provider.GetRequiredService<IConfig>();
                 var customProperties = config.CustomProperties;
                 if (customProperties.TryGetValue(typeof(BacktestConfig).Name, out var configObject))
                 {

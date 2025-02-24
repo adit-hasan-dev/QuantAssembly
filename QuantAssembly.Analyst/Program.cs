@@ -5,7 +5,7 @@
         public static async Task Main(string[] args)
         {
             var analyst = new Analyst();
-            await analyst.RetrieveCompanies();
+            await analyst.Run();
         }
     }
 }

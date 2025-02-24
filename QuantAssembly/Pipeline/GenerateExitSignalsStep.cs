@@ -17,16 +17,15 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.signals))]
     public class GenerateExitSignalsStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             ValidatePrerequisites(context);
-
+            var config = baseConfig as Config;
             var logger = serviceProvider.GetRequiredService<ILogger>();
             logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Started generating exit signals");
             
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
-            var config = serviceProvider.GetRequiredService<IConfig>();
             
             List<Signal> exitSignals = new List<Signal>();
 

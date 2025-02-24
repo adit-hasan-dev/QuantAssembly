@@ -1,5 +1,5 @@
 using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Models;
+using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Utility;
 

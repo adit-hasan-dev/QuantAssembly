@@ -1,4 +1,3 @@
-using System.Transactions;
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
@@ -20,10 +19,10 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.accountData))]
     public class InitStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
+            var config = baseConfig as Config;
             var ledger = serviceProvider.GetService<ILedger>();
-            var config = serviceProvider.GetService<IConfig>();
             var logger = serviceProvider.GetService<ILogger>();
             logger.LogInfo($"[{nameof(InitStep)}] Started init step");
             

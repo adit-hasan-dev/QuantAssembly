@@ -16,7 +16,7 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.accountData))]
     public class ClosePositionsStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             // We don't invoke the RiskManager to close positions we just sell 
             // the entire position. So this can be done before the RiskManagement step
@@ -44,7 +44,7 @@ namespace QuantAssembly
                 }
                 context.transactions.Add(result);
             }
-            var config = serviceProvider.GetRequiredService<IConfig>();
+            var config = baseConfig as Config;
             context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
         }
     }

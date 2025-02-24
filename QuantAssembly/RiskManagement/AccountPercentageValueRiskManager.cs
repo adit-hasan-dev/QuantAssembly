@@ -11,8 +11,8 @@ namespace QuantAssembly.RiskManagement
 
     public class PercentageAccountValueRiskManager : BaseRiskManager<PercentageAccountValueRiskManagerConfig>
     {
-        public PercentageAccountValueRiskManager(IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public PercentageAccountValueRiskManager(IServiceProvider serviceProvider, Config config)
+            : base(serviceProvider, config)
         {
         }
 

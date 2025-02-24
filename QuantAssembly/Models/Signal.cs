@@ -1,4 +1,5 @@
 using System;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.Models
 {

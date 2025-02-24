@@ -16,7 +16,7 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.signals))]
     public class GenerateEntrySignalsStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             ValidatePrerequisites(context);
             var logger = serviceProvider.GetService<ILogger>();
@@ -25,7 +25,6 @@ namespace QuantAssembly
             var marketDataProvider = serviceProvider.GetService<IMarketDataProvider>();
             var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
             var ledger = serviceProvider.GetService<ILedger>();
-            var config = serviceProvider.GetService<IConfig>();
 
             var entrySignals = new List<Signal>();
 

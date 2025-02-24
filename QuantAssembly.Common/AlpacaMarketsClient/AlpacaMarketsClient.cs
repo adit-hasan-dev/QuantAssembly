@@ -8,23 +8,44 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
     {
         public string apiKey { get; set; }
         public string apiSecret { get; set; }
+        public int batchSize { get; set; }
     }
     public class AlpacaMarketsClient
     {
-        private readonly string apikey;
-        private readonly string apiSecret;
-        public AlpacaMarketsClient(IConfig config)
+        private readonly IAlpacaDataClient client;
+        private readonly AlpacaMarketsClientConfig config;
+        public AlpacaMarketsClient(AlpacaMarketsClientConfig config)
         {
-            if (config.CustomProperties.TryGetValue(typeof(AlpacaMarketsClientConfig).Name, out var configObject))
+            try 
             {
-                var customConfig = configObject.ToObject<AlpacaMarketsClientConfig>();
-                apikey = customConfig.apiKey;
-                apiSecret = customConfig.apiSecret;
+                this.config = config;
+                // Connect to Alpaca REST API
+                SecretKey secretKey = new(config.apiKey, config.apiSecret);
+                client = Environments.Live.GetAlpacaDataClient(secretKey);
+
             }
-            else
+            catch (Exception ex)
             {
                 throw new InvalidOperationException($"Configuration for {typeof(AlpacaMarketsClientConfig).Name} not found.");
             }
+        }
+
+        public async Task<IReadOnlyDictionary<string, T>> GetLatestMarketDataAsync<T>(List<string> symbols)
+        {
+            var batches = symbols.Distinct().Chunk(config.batchSize);
+            List<IReadOnlyDictionary<string, T>> bars = new List<IReadOnlyDictionary<string, T>>();
+            foreach (var batch in batches)
+            {
+                var request = new LatestMarketDataListRequest(batch);
+                var result = typeof(T) switch 
+                {
+                    { } when typeof(T) == typeof(IBar) => await client.ListLatestBarsAsync(request) as IReadOnlyDictionary<string, T>,
+                    { } when typeof(T) == typeof(IQuote) => await client.ListLatestQuotesAsync(request) as IReadOnlyDictionary<string, T>,
+                    _ => null
+                };
+                bars.Add(result);
+            }
+            return bars.SelectMany(x => x).ToDictionary(x => x.Key, x => x.Value);
         }
 
         public async Task<IEnumerable<T>> GetIndicatorDataAsync<T>(
@@ -33,19 +54,15 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             DateTime? endTime = null,
             StepSize? stepSize = null)
         {
-            if (string.IsNullOrEmpty(apikey))
+            if (string.IsNullOrEmpty(this.config.apiKey))
             {
-                throw new ArgumentNullException(apikey, $"API KEY missing, use `setx ALPACA_KEY \"MY-ALPACA-KEY\"` to set.");
+                throw new ArgumentNullException(this.config.apiKey, $"API KEY missing, use `setx ALPACA_KEY \"MY-ALPACA-KEY\"` to set.");
             }
 
-            if (string.IsNullOrEmpty(apiSecret))
+            if (string.IsNullOrEmpty(this.config.apiSecret))
             {
-                throw new ArgumentNullException(apiSecret, $"API SECRET missing, use `setx AlpacaApiSecret \"MY-ALPACA-SECRET\"` to set.");
+                throw new ArgumentNullException(this.config.apiSecret, $"API SECRET missing, use `setx AlpacaApiSecret \"MY-ALPACA-SECRET\"` to set.");
             }
-
-            // Connect to Alpaca REST API
-            SecretKey secretKey = new(apikey, apiSecret);
-            IAlpacaDataClient client = Environments.Live.GetAlpacaDataClient(secretKey);
 
             endTime ??= DateTime.UtcNow.AddMinutes(-16);
             startTime ??= endTime.Value.AddYears(-2); // Default look-back period of 2 years

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\QuantAssembly.Common\QuantAssembly.Common.csproj" />
+    <ProjectReference Include="..\QuantAssembly\QuantAssembly.csproj" />
   </ItemGroup>
   <ItemGroup>
   <None Update="appsettings.json">

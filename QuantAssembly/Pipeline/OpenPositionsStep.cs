@@ -15,7 +15,7 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.accountData))]
     public class OpenPositionsStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             // We expect the RiskManager to have already computed the position size
             var tradeManager = serviceProvider.GetRequiredService<ITradeManager>();
@@ -32,8 +32,8 @@ namespace QuantAssembly
                 }
                 context.transactions.Add(result);
             }
-            var config = serviceProvider.GetRequiredService<IConfig>();
-            context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
+            var quantConfig = config as Config;
+            context.accountData = await accountDataProvider.GetAccountDataAsync(quantConfig.AccountId);
         }
     }
 

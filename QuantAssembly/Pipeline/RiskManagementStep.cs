@@ -3,6 +3,7 @@ using Alpaca.Markets;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly;
+using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
@@ -16,7 +17,7 @@ namespace QuantAssembly
     [PipelineStepOutput(nameof(QuantContext.positionsToOpen))]
     public class RiskManagementStep : IPipelineStep<QuantContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider)
+        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             var riskManager = serviceProvider.GetRequiredService<IRiskManager>();
             var logger = serviceProvider.GetRequiredService<ILogger>();

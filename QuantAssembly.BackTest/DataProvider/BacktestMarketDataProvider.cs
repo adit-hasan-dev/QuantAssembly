@@ -3,10 +3,11 @@ using Alpaca.Markets;
 using QuantAssembly.BackTesting.Utility;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
+using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Instrumentation;
 using QuantAssembly.Common.Logging;
+using QuantAssembly.Common.Models;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Impl.AlpacaMarkets;
 using QuantAssembly.Models;
 using Skender.Stock.Indicators;
 using IQuote = Alpaca.Markets.IQuote;
@@ -23,7 +24,7 @@ namespace QuantAssembly.BackTesting.DataProvider
         private readonly List<string> tickers;
         private bool isInitialized = false;
         private readonly ILogger logger;
-        private readonly IConfig config;
+        private readonly string cacheFolderPath;
         private readonly int precomputeTaskBatchSize = 100;
 
         private class TimestampedIndicatorData
@@ -36,13 +37,14 @@ namespace QuantAssembly.BackTesting.DataProvider
             TimeMachine timeMachine,
             AlpacaMarketsClient alpacaClient,
             ILogger logger,
-            IConfig config)
+            string cacheFolderPath,
+            List<string> tickers)
         {
             this.timeMachine = timeMachine;
             this.alpacaClient = alpacaClient;
-            this.tickers = config.TickerStrategyMap.Keys.ToList();
+            this.tickers = tickers;
             this.logger = logger;
-            this.config = config;
+            this.cacheFolderPath = cacheFolderPath;
         }
 
         public async Task<IndicatorData> GetIndicatorDataAsync(string ticker)
@@ -134,7 +136,7 @@ namespace QuantAssembly.BackTesting.DataProvider
 
         private async Task PreComputeHistoricalIndicators(string ticker, TimeMachine timeMachine, IProgress<int> progress)
         {
-            var cacheFilePath = $"{config.CacheFolderPath}/{ticker}_{timeMachine.timePeriod}_{timeMachine.stepSize}_HistoricalIndicatorsCache.json";
+            var cacheFilePath = $"{cacheFolderPath}/{ticker}_{timeMachine.timePeriod}_{timeMachine.stepSize}_HistoricalIndicatorsCache.json";
             var cachedData = await CacheHelper.LoadFromCacheAsync<List<TimestampedIndicatorData>>(cacheFilePath);
             var dataList = new ConcurrentBag<TimestampedIndicatorData>(cachedData ?? new List<TimestampedIndicatorData>());
 

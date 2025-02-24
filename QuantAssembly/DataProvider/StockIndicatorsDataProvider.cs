@@ -1,8 +1,8 @@
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
 using Skender.Stock.Indicators;
 using Alpaca.Markets;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.DataProvider
 {

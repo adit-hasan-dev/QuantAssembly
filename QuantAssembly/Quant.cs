@@ -18,7 +18,7 @@ namespace QuantAssembly
 {
     public class Quant
     {
-        private IConfig config;
+        private Config config;
         private ILogger logger;
 
         private ServiceProvider serviceProvider;
@@ -38,17 +38,16 @@ namespace QuantAssembly
         {
             Initialize();
             logger = serviceProvider.GetRequiredService<ILogger>();
-            config = serviceProvider.GetRequiredService<IConfig>();
             logger.LogInfo("Initializing Quant...");
 
             // Load all strategies
             logger.LogInfo($"[Quant] Loading all strategies.");
             this.strategyProcessor = new StrategyProcessor(logger);
-            foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
+            foreach (KeyValuePair<string, string>pair in config.TickerStrategyMap)
             {
                 try
                 {
-                    this.strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                    this.strategyProcessor.LoadStrategyFromFile(pair.Key, pair.Value);
                 }
                 catch (Exception ex)
                 {
@@ -58,7 +57,7 @@ namespace QuantAssembly
             this.accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
             this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             this.IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
-            this.riskManager = new PercentageAccountValueRiskManager(serviceProvider);
+            this.riskManager = new PercentageAccountValueRiskManager(serviceProvider, config);
             this.tradeManager = new IBGWTradeManager(serviceProvider);
             pollingIntervalInMs = config.PollingIntervalInMs;
             logger.LogInfo("Successfully initialized Quant.");
@@ -84,18 +83,17 @@ namespace QuantAssembly
 
         private void Initialize()
         {
+            config = ConfigurationLoader.LoadConfiguration<Config>();
             var services = new ServiceCollection();
             serviceProvider = services
-            .AddSingleton<IConfig, Config>()
+            .AddSingleton<Config>()
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                var config = provider.GetRequiredService<IConfig>();
                 return new Logger(config, isDevEnv: false);
             })
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
-                var config = provider.GetRequiredService<IConfig>();
                 return new Ledger.Ledger(config, logger);
             })
             .AddSingleton<IIBGWClient, IBGWClient>(provider =>
@@ -105,8 +103,15 @@ namespace QuantAssembly
             })
             .AddSingleton<AlpacaMarketsClient>(provider =>
             {
-                var config = provider.GetRequiredService<IConfig>();
-                return new AlpacaMarketsClient(config);
+                if (config.CustomProperties.TryGetValue(nameof(AlpacaMarketsClientConfig), out var alpacaConfigJson))
+                {
+                    var alpacaConfig = JsonConvert.DeserializeObject<AlpacaMarketsClientConfig>(alpacaConfigJson.ToString());
+                    return new AlpacaMarketsClient(alpacaConfig);
+                }
+                else
+                {
+                    throw new Exception("AlpacaMarketsClientConfig not found in config");
+                }
             })
             .AddSingleton<IIndicatorDataProvider, StockIndicatorsDataProvider>(provider =>
             {
@@ -117,9 +122,8 @@ namespace QuantAssembly
             .AddSingleton<IAccountDataProvider, IBGWAccountDataProvider>(provider =>
             {
                 var client = provider.GetRequiredService<IIBGWClient>();
-                var config = provider.GetRequiredService<IConfig>();
                 var logger = provider.GetRequiredService<ILogger>();
-                return new IBGWAccountDataProvider(client, config, logger);
+                return new IBGWAccountDataProvider(client, logger);
             })
             .AddSingleton<IMarketDataProvider, IBGWMarketDataProvider>(provider =>
             {

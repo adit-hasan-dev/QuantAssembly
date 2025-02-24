@@ -1,4 +1,4 @@
-using QuantAssembly.Models;
+using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.DataProvider
 {

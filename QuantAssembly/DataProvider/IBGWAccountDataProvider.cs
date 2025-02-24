@@ -1,4 +1,3 @@
-using QuantAssembly.Common.Config;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
@@ -10,7 +9,7 @@ namespace QuantAssembly.DataProvider
         private readonly IIBGWClient iBGWClient;
         private ILogger logger;
 
-        public IBGWAccountDataProvider(IIBGWClient client, IConfig config ,ILogger logger)
+        public IBGWAccountDataProvider(IIBGWClient client, ILogger logger)
         {
             this.logger = logger;
             this.iBGWClient = client;

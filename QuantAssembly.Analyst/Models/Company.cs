@@ -10,6 +10,5 @@ namespace QuantAssembly.Analyst
         public DateTime Dateadded { get; set; }
         public string CIK { get; set; }
         public string Founded { get; set; }
-        public int? FoundedYear { get; set; }
     }
 }

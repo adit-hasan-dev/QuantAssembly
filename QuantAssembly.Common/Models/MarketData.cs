@@ -1,4 +1,4 @@
-namespace QuantAssembly.Models
+namespace QuantAssembly.Common.Models
 {
     public class MarketData
     {

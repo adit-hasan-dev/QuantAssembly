@@ -14,7 +14,7 @@ namespace QuantAssembly.Ledger
         private ILogger logger;
         private bool disposed = false;
 
-        public Ledger(IConfig config, ILogger logger)
+        public Ledger(Config config, ILogger logger)
         {
             this.filePath = config.LedgerFilePath;
             this.logger = logger;

@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.Common.Config;
 
 namespace QuantAssembly.Common.Pipeline
 {
@@ -8,10 +9,12 @@ namespace QuantAssembly.Common.Pipeline
         private List<Type> stepTypes = new List<Type>();
         private HashSet<string> outputMembers = new HashSet<string>();
         private ServiceProvider serviceProvider;
+        private BaseConfig config;
 
-        public PipelineBuilder(ServiceProvider serviceProvider)
+        public PipelineBuilder(ServiceProvider serviceProvider, BaseConfig config)
         {
             this.serviceProvider = serviceProvider;
+            this.config = config;
         }
 
         public PipelineBuilder<TContext> AddStep<TStep>() where TStep : IPipelineStep<TContext>, new()
@@ -58,7 +61,7 @@ namespace QuantAssembly.Common.Pipeline
 
         public Pipeline<TContext> Build()
         {
-            Pipeline<TContext> pipeline = new Pipeline<TContext>(serviceProvider);
+            Pipeline<TContext> pipeline = new Pipeline<TContext>(serviceProvider, config);
             foreach (Type stepType in stepTypes)
             {
                 pipeline.steps.Add(Activator.CreateInstance(stepType) as IPipelineStep<TContext>);
