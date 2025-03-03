@@ -26,11 +26,19 @@ namespace QuantAssembly.Analyst.Models
         public double? RSIOverboughtThreshold { get; set; } // Default: Overbought threshold
     }
 
+    public class OptionsContractFilterConfig
+    {
+        public double? MinimumOpenInterest { get; set; }
+        public double? MinimumVolume { get; set; }
+        public double? MaxBidAskSpread { get; set; }
+    }
+
 
     public class Config : BaseConfig
     {
         public MarketDataFilterConfig marketDataFilterConfig { get; set; }
         public CompanyDataFilterConfig companyDataFilterConfig { get; set; }
         public IndicatorFilterConfig indicatorFilterConfig { get; set; }
+        public OptionsContractFilterConfig optionsContractFilterConfig { get; set; }
     }
 }

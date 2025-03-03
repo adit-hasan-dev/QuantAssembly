@@ -1,8 +1,11 @@
 using System.Globalization;
+using System.Reflection.Metadata.Ecma335;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
+using QuantAssembly.Analyst.LLM;
 using QuantAssembly.Analyst.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
@@ -33,7 +36,9 @@ namespace QuantAssembly.Analyst
                 .AddStep<InitStep>()
                 .AddStep<StockDataFilterStep>()
                 .AddStep<IndicatorFilterStep>()
+                .AddStep<OptionsFilterStep>()
                 .AddStep<PreAIStep>()
+                .AddStep<LLMStep>()
                 .Build();
 
             this.logger.LogInfo($"[{nameof(Analyst)}] Pipeline successfully built. Executing pipeline.");
@@ -43,6 +48,16 @@ namespace QuantAssembly.Analyst
         private void InitializeAnalyst()
         {
             var services = new ServiceCollection();
+            AzureOpenAIServiceClientConfig openAIServiceConfig;
+            if (config.CustomProperties.TryGetValue(nameof(AzureOpenAIServiceClientConfig), out var openAIServiceConfigJson))
+            {
+                openAIServiceConfig = JsonConvert.DeserializeObject<AzureOpenAIServiceClientConfig>(openAIServiceConfigJson.ToString());
+            }
+            else
+            {
+                throw new Exception("AlpacaMarketsClientConfig not found in config");
+            }
+
             this.serviceProvider = services
                 .AddSingleton<ILogger, Logger>(provider => {
                     return new Logger(config, isDevEnv: true);
@@ -61,9 +76,25 @@ namespace QuantAssembly.Analyst
                 })
                 .AddSingleton<IIndicatorDataProvider, StockIndicatorsDataProvider>(provider =>
                  {
-                var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
-                var logger = provider.GetRequiredService<ILogger>();
-                return new StockIndicatorsDataProvider(alpacaClient, logger);
+                    var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
+                    var logger = provider.GetRequiredService<ILogger>();
+                    return new StockIndicatorsDataProvider(alpacaClient, logger);
+                })
+                .AddSingleton<IOptionsChainDataProvider, AlpacaOptionsChainDataProvider>(provider => {
+                    var alpacaClient = provider.GetRequiredService<AlpacaMarketsClient>();
+                    var logger = provider.GetRequiredService<ILogger>();
+                    return new AlpacaOptionsChainDataProvider(alpacaClient, logger);
+                })
+                .AddAzureOpenAIChatCompletion(
+                    deploymentName: openAIServiceConfig!.DeploymentName,
+                    apiKey: openAIServiceConfig.ApiKey,
+                    endpoint: openAIServiceConfig.Endpoint
+                )
+                .AddSingleton<Kernel>(provider => {
+                    return new Kernel(provider);
+                })
+                .AddSingleton<ILLMService, AzureOpenAIService>(provider => {
+                    return new AzureOpenAIService(provider);
                 })
                 .BuildServiceProvider();
             

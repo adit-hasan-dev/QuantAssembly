@@ -25,7 +25,12 @@ namespace QuantAssembly.Common.Pipeline
             foreach (var step in steps)
             {
                 logger.LogDebug($"[Pipeline::Execute] Executing step: {step.GetType().Name}");
-                await  step.Execute(context, serviceProvider, config);
+                await Instrumentation.LatencyLogger.DoWithLatencyLoggerAsync(async () =>
+                {
+                    await  step.Execute(context, serviceProvider, config);
+                },
+                step.GetType().Name,
+                logger);
                 logger.LogDebug($"[Pipeline::Execute] Successfully executed step: {step.GetType().Name}");
             }
         }

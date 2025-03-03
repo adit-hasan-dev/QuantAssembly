@@ -13,6 +13,8 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
     public class AlpacaMarketsClient
     {
         private readonly IAlpacaDataClient client;
+        private readonly IAlpacaOptionsDataClient optionsDataClient;
+        private readonly IAlpacaTradingClient tradingClient;
         private readonly AlpacaMarketsClientConfig config;
         public AlpacaMarketsClient(AlpacaMarketsClientConfig config)
         {
@@ -22,7 +24,8 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                 // Connect to Alpaca REST API
                 SecretKey secretKey = new(config.apiKey, config.apiSecret);
                 client = Environments.Live.GetAlpacaDataClient(secretKey);
-
+                optionsDataClient = Environments.Paper.GetAlpacaOptionsDataClient(secretKey);
+                tradingClient = Environments.Paper.GetAlpacaTradingClient(secretKey);
             }
             catch (Exception ex)
             {
@@ -46,6 +49,11 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                 bars.Add(result);
             }
             return bars.SelectMany(x => x).ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        public async Task<IOptionContract> GetOptionsContractDetails(string contractSymbol)
+        {
+            return await tradingClient.GetOptionContractBySymbolAsync(contractSymbol);
         }
 
         public async Task<IEnumerable<T>> GetIndicatorDataAsync<T>(
@@ -74,6 +82,53 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             };
 
             return result ?? throw new InvalidOperationException($"{typeof(T)} is not supported!");
+        }
+
+        public async Task<IEnumerable<IOptionSnapshot>> GetOptionsChainDataAsync(
+            string symbol,
+            DateOnly? earliestExpirationDate)
+        {
+            if (string.IsNullOrEmpty(this.config.apiKey))
+            {
+                throw new ArgumentNullException(this.config.apiKey, $"API KEY missing, use `setx ALPACA_KEY \"MY-ALPACA-KEY\"` to set.");
+            }
+
+            if (string.IsNullOrEmpty(this.config.apiSecret))
+            {
+                throw new ArgumentNullException(this.config.apiSecret, $"API SECRET missing, use `setx AlpacaApiSecret \"MY-ALPACA-SECRET\"` to set.");
+            }
+
+            OptionChainRequest request = new OptionChainRequest(symbol)
+            {
+                ExpirationDateGreaterThanOrEqualTo = earliestExpirationDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+            var response = await optionsDataClient.GetOptionChainAsync(request);
+            return response.Items.Values;
+        }
+
+        public async Task<IEnumerable<IBar>> GetOptionHistoricalBarsAsync(
+            string symbol)
+        {
+            List<IBar> allBars = new List<IBar>();
+            string? nextPageToken = null;
+
+            do
+            {
+                HistoricalOptionBarsRequest request = new(symbol, DateTime.UtcNow.AddDays(-9), DateTime.UtcNow.AddDays(-3), BarTimeFrame.Day)
+                {
+                    Pagination = {
+                        Size = Pagination.MaxPageSize,
+                        Token = nextPageToken
+                    }
+                };
+
+                IPage<IBar> barSet = await optionsDataClient.ListHistoricalBarsAsync(request);
+                allBars.AddRange(barSet.Items);
+                nextPageToken = barSet.NextPageToken;
+
+            } while (nextPageToken != null);
+
+            return allBars;
         }
 
         private async Task<IEnumerable<IBar>> GetHistoricalBarsAsync(
