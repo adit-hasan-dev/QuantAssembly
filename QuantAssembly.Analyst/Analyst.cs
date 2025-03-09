@@ -5,8 +5,10 @@ using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
+using QuantAssembly.Analyst.DataProvider;
 using QuantAssembly.Analyst.LLM;
 using QuantAssembly.Analyst.Models;
+using QuantAssembly.Common;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Logging;
@@ -97,7 +99,24 @@ namespace QuantAssembly.Analyst
                     return new AzureOpenAIService(provider);
                 })
                 .BuildServiceProvider();
-            
+        }
+
+        private Kernel BuildSemanticKernel(
+            AzureOpenAIServiceClientConfig config,
+            PolygonClient client,
+            ILogger logger)
+        {
+            var builder = Kernel.CreateBuilder();
+            builder.AddAzureOpenAIChatCompletion(
+                deploymentName: config!.DeploymentName,
+                apiKey: config.ApiKey,
+                endpoint: config.Endpoint
+            );
+            builder.Services.AddSingleton(provider => {
+                return new PolygonMarketNewsDataProvider(client, logger);
+            });
+            builder.Plugins.AddFromType<MarketNewsPlugin>("market_news");
+            return builder.Build();
         }
     }
 }

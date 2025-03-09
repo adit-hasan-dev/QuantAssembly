@@ -1,6 +1,8 @@
+using Alpaca.Markets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OpenAI.Chat;
 using QuantAssembly.Analyst.Models;
 using QuantAssembly.Common.Logging;
@@ -55,7 +57,16 @@ namespace QuantAssembly.Analyst.LLM
             var chatHistory = new ChatHistory(systemMessage);
             chatHistory.AddUserMessage(userPrompt);
 
-            var result = await chatCompletionService.GetChatMessageContentAsync(chatHistory);
+            // Enable planning
+            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new() 
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+            };
+            var result = await chatCompletionService.GetChatMessageContentAsync(
+                chatHistory: chatHistory,
+                executionSettings: openAIPromptExecutionSettings,
+                kernel: kernel
+                );
             logger.LogInfo($"[{nameof(AzureOpenAIService)}] Succesfully called LLM.");
             return result;
         }

@@ -362,6 +362,8 @@ As an input, you will be given a json array where each element contains informat
 ## Analysis
 You will rank the candidates and select at most 5 candidates that are most promising. You will apply both quantitative and qualitative analysis when assessing each candidate with slightly more emphasis on quantitative analysis which might be more reliable. When comparing two contracts that are very similar in terms of probable profit, choose the contract that is cheaper.
 
+You have access to a `MarketNewsPlugin` that can retrieve market news articles from the last 2 months for the ticker symbol using the `get_news` function. You should consider calling this function when you think the information would further refine your analysis and choices.
+
 Then you will make recommendations for which options contracts to buy. You will only consider strategies where one buys an options contract, waits until it reaches either the take profit level or the stop loss level.
 
 When choosing the list of contracts to recommend, consider how diversified the list is and any other advanced analysis techniques to determine the optimal collection of options contracts to buy.

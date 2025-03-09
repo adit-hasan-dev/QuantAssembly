@@ -14,14 +14,6 @@ namespace QuantAssembly.Common
             _apiKey = apiKey;
         }
 
-        /// <summary>
-        /// Retrieves news articles from Polygon.
-        /// </summary>
-        /// <param name="ticker">Ticker symbol to filter news articles (e.g. "AAPL,TSLA").</param>
-        /// <param name="limit">(Optional) Maximum number of articles to return. Default is 10.</param>
-        /// <param name="cursor">(Optional) A cursor string for pagination.</param>
-        /// <param name="cancellationToken"></param>
-        /// <returns>A PolygonNewsResponse containing the news articles.</returns>
         public async Task<PolygonNewsResponse> GetNewsAsync(
             string ticker, 
             int limit,
