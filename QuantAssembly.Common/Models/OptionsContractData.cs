@@ -1,5 +1,3 @@
-using System.Security.Cryptography.X509Certificates;
-
 namespace QuantAssembly.Common.Models
 {
     public class OptionsContractData
