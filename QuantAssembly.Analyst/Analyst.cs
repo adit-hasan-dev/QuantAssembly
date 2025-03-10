@@ -41,6 +41,7 @@ namespace QuantAssembly.Analyst
                 .AddStep<OptionsFilterStep>()
                 .AddStep<PreAIStep>()
                 .AddStep<LLMStep>()
+                .AddStep<PresentationStep>()
                 .Build();
 
             this.logger.LogInfo($"[{nameof(Analyst)}] Pipeline successfully built. Executing pipeline.");
@@ -87,36 +88,27 @@ namespace QuantAssembly.Analyst
                     var logger = provider.GetRequiredService<ILogger>();
                     return new AlpacaOptionsChainDataProvider(alpacaClient, logger);
                 })
-                .AddAzureOpenAIChatCompletion(
-                    deploymentName: openAIServiceConfig!.DeploymentName,
-                    apiKey: openAIServiceConfig.ApiKey,
-                    endpoint: openAIServiceConfig.Endpoint
-                )
-                .AddSingleton<Kernel>(provider => {
-                    return new Kernel(provider);
+                .AddSingleton<PolygonClient>(provider => {
+                    if (config.CustomProperties.TryGetValue(nameof(PolygonClientConfig), out var clientConfig))
+                    {
+                        var polygonConfig = JsonConvert.DeserializeObject<PolygonClientConfig>(clientConfig.ToString());
+                        return new PolygonClient(new HttpClient(), polygonConfig.apiKey, polygonConfig.maxCallsPerMin);
+                    }
+                    else
+                    {
+                        throw new Exception("PolygonClientApiKey not found in config");
+                    }
+                })
+                .AddSingleton<IMarketNewsDataProvider, PolygonMarketNewsDataProvider>(provider => {
+                    var polygonClient = provider.GetRequiredService<PolygonClient>();
+                    var logger = provider.GetRequiredService<ILogger>();
+                    
+                    return new PolygonMarketNewsDataProvider(polygonClient, logger);
                 })
                 .AddSingleton<ILLMService, AzureOpenAIService>(provider => {
-                    return new AzureOpenAIService(provider);
+                    return new AzureOpenAIService(provider, openAIServiceConfig);
                 })
                 .BuildServiceProvider();
-        }
-
-        private Kernel BuildSemanticKernel(
-            AzureOpenAIServiceClientConfig config,
-            PolygonClient client,
-            ILogger logger)
-        {
-            var builder = Kernel.CreateBuilder();
-            builder.AddAzureOpenAIChatCompletion(
-                deploymentName: config!.DeploymentName,
-                apiKey: config.ApiKey,
-                endpoint: config.Endpoint
-            );
-            builder.Services.AddSingleton(provider => {
-                return new PolygonMarketNewsDataProvider(client, logger);
-            });
-            builder.Plugins.AddFromType<MarketNewsPlugin>("market_news");
-            return builder.Build();
         }
     }
 }

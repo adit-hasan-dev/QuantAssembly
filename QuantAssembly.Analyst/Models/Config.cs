@@ -40,5 +40,6 @@ namespace QuantAssembly.Analyst.Models
         public CompanyDataFilterConfig companyDataFilterConfig { get; set; }
         public IndicatorFilterConfig indicatorFilterConfig { get; set; }
         public OptionsContractFilterConfig optionsContractFilterConfig { get; set; }
+        public string OutputFilePath { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OpenAI.Chat;
+using QuantAssembly.Analyst.DataProvider;
 using QuantAssembly.Analyst.Models;
 using QuantAssembly.Common.Logging;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
@@ -18,20 +19,20 @@ namespace QuantAssembly.Analyst.LLM
     }
     public class AzureOpenAIService : ILLMService
     {
-        IChatCompletionService chatCompletionService;
-        Kernel kernel;
         ILogger logger;
-        public AzureOpenAIService(IServiceProvider serviceProvider)
+        AzureOpenAIServiceClientConfig config;
+        IMarketNewsDataProvider marketNewsDataProvider;
+        public AzureOpenAIService(IServiceProvider serviceProvider, AzureOpenAIServiceClientConfig config)
         {
-            this.kernel =  serviceProvider.GetRequiredService<Kernel>();
             this.logger = serviceProvider.GetRequiredService<ILogger>();
-            this.chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+            this.marketNewsDataProvider = serviceProvider.GetRequiredService<IMarketNewsDataProvider>();
+            this.config = config;
         }
 
         public async Task<ChatMessageContent> InvokeLLM(InvokeLLMRequest request)
         {
             logger.LogInfo($"[{nameof(AzureOpenAIService)}] Invoking LLM.");
-            
+            Kernel kernel = BuildKernel();
             logger.LogDebug($"[{nameof(AzureOpenAIService)}] Adding context:\n {request.Context}");
             var kernelArguments = new KernelArguments()
             {
@@ -60,8 +61,10 @@ namespace QuantAssembly.Analyst.LLM
             // Enable planning
             OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new() 
             {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+                MaxTokens = 8192
             };
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
             var result = await chatCompletionService.GetChatMessageContentAsync(
                 chatHistory: chatHistory,
                 executionSettings: openAIPromptExecutionSettings,
@@ -69,6 +72,19 @@ namespace QuantAssembly.Analyst.LLM
                 );
             logger.LogInfo($"[{nameof(AzureOpenAIService)}] Succesfully called LLM.");
             return result;
+        }
+
+        private Kernel BuildKernel()
+        {
+            var builder = Kernel.CreateBuilder();
+            builder.AddAzureOpenAIChatCompletion(
+                deploymentName: config!.DeploymentName,
+                apiKey: config.ApiKey,
+                endpoint: config.Endpoint
+            )
+            .Services.AddSingleton(this.marketNewsDataProvider);
+            builder.Plugins.AddFromType<MarketNewsPlugin>("market_news");
+            return builder.Build();
         }
     }
 }

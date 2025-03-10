@@ -35,6 +35,8 @@ namespace QuantAssembly.Analyst
             logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM ...");
             var response = await llmService.InvokeLLM(llmRequest);
             logger.LogInfo($"[{nameof(LLMStep)}] Received response from LLM: {response.Items}");
+
+            context.composedOutput = response.Content;
         }
     }
 }

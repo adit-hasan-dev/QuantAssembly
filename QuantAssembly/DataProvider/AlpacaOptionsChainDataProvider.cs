@@ -22,7 +22,16 @@ namespace QuantAssembly.DataProvider
         {
             logger.LogInfo($"[{nameof(AlpacaOptionsChainDataProvider)}] Getting options chain data for underlying asset: {symbol} with minimum expiration in days: {minimumExpirationTimeInDays}");
             var earliestExpirationDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(minimumExpirationTimeInDays));
-            var optionsSnapshots = await alpacaDataClient.GetOptionsChainDataAsync(symbol, earliestExpirationDate);
+            List<IOptionSnapshot> optionsSnapshots = new();
+            try 
+            {
+                optionsSnapshots = (await alpacaDataClient.GetOptionsChainDataAsync(symbol, earliestExpirationDate)).ToList();
+
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug($"[{nameof(AlpacaOptionsChainDataProvider)}] Exception occurred while getting options chain data for symbol: {symbol}. Exception: {ex.Message}, InnerException: {ex.InnerException}");
+            }
             logger.LogInfo($"[{nameof(AlpacaOptionsChainDataProvider)}] Retrieved {optionsSnapshots.Count()} options contracts for underlying asset: {symbol}");
 
             var optionsContractDataList = new List<OptionsContractData>();

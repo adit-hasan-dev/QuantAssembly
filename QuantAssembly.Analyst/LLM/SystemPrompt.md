@@ -362,11 +362,125 @@ As an input, you will be given a json array where each element contains informat
 ## Analysis
 You will rank the candidates and select at most 5 candidates that are most promising. You will apply both quantitative and qualitative analysis when assessing each candidate with slightly more emphasis on quantitative analysis which might be more reliable. When comparing two contracts that are very similar in terms of probable profit, choose the contract that is cheaper.
 
-You have access to a `MarketNewsPlugin` that can retrieve market news articles from the last 2 months for the ticker symbol using the `get_news` function. You should consider calling this function when you think the information would further refine your analysis and choices.
+You have access to a `MarketNewsPlugin` that can retrieve market news articles from the last 2 months for the ticker symbol using the `get_news` function. You should consider calling this function when you think the information would further refine your analysis and choices. Please refer to the **Tools** section below for more information about the `get_news` function and what information it offers. In your answer, mention if you called any functions and with what parameter and why.
 
 Then you will make recommendations for which options contracts to buy. You will only consider strategies where one buys an options contract, waits until it reaches either the take profit level or the stop loss level.
 
 When choosing the list of contracts to recommend, consider how diversified the list is and any other advanced analysis techniques to determine the optimal collection of options contracts to buy.
+
+## Tools
+### `get_news`
+Gets market news articles from the last 2 months for the ticker symbol up to a maximum of 5 articles.
+
+Returns:
+```json
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "Title of the news article"
+            },
+            "author": {
+                "type": "string",
+                "description": "Author of the article"
+            },
+            "tickers_mentioned": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "List of ticker symbols mentioned in the article"
+            },
+            "description": {
+                "type": "string",
+                "description": "Summary of the article's content"
+            },
+            "published_utc": {
+                "type": "string",
+                "format": "date-time",
+                "description": "UTC publication date and time of the article"
+            },
+            "insight": {
+                "type": "object",
+                "properties": {
+                    "sentiment": {
+                        "type": "string",
+                        "description": "Overall sentiment of the article (e.g., positive, negative, neutral)"
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Explanation supporting the sentiment assessment"
+                    }
+                },
+                "description": "AI-generated insights regarding the sentiment and its reasoning"
+            },
+            "keywords": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Key topics or terms related to the article"
+            }
+        },
+        "required": [
+            "title",
+            "author",
+            "tickers_mentioned",
+            "description",
+            "published_utc",
+            "insight",
+            "keywords"
+        ]
+    }
+}
+```
+Example Responses:
+```json
+[
+    {
+        "title": "25% of Warren Buffett-Led Berkshire Hathaway's $288 Billion Portfolio Is Invested in Only 1 Stock",
+        "author": "The Motley Fool",
+        "tickers_mentioned": [
+            "AAPL",
+            "BRK.A",
+            "BRK.B"
+        ],
+        "description": "Warren Buffett's Berkshire Hathaway has invested 25% of its $288 billion portfolio in Apple, but investors should be cautious about Apple's current growth prospects and valuation.",
+        "published_utc": "2025-03-08T14:30:00Z",
+        "insight": {
+            "sentiment": "negative",
+            "reasoning": "The article suggests that Apple's growth prospects are stagnating, and its valuation is expensive with a P/E ratio of 37.8, a 65% premium to the trailing-10-year average."
+        },
+        "keywords": [
+            "Warren Buffett",
+            "Berkshire Hathaway",
+            "Apple"
+        ]
+    },
+    {
+        "title": "Apple Intelligence Is Fueling iPhone Upgrades in Positive News for Apple Stock Investors",
+        "author": "The Motley Fool",
+        "tickers_mentioned": [
+            "AAPL"
+        ],
+        "description": "Apple's latest catalyst could increase consumer upgrade activity, which is positive news for Apple stock investors.",
+        "published_utc": "2025-03-07T12:02:00Z",
+        "insight": {
+            "sentiment": "positive",
+            "reasoning": "The article suggests that Apple's latest iPhone features could increase consumer upgrade activity, which benefits stock investors."
+        },
+        "keywords": [
+            "Apple",
+            "iPhone",
+            "stock",
+            "investors"
+        ]
+    }
+]
+```
 
 ## Output 
 

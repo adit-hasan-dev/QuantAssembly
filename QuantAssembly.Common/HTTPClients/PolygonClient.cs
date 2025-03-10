@@ -3,13 +3,18 @@ using QuantAssembly.Common.Models;
 
 namespace QuantAssembly.Common
 {
+    public class PolygonClientConfig
+    {
+        public string apiKey { get; set; }
+        public int maxCallsPerMin { get; set; }
+    }
     public class PolygonClient : BaseHttpClient
     {
         private readonly string _apiKey;
         private const string BaseNewsUrl = "https://api.polygon.io/v2/reference/news";
 
-        public PolygonClient(HttpClient httpClient, string apiKey)
-            : base(httpClient)
+        public PolygonClient(HttpClient httpClient, string apiKey, int maxRequestsPerMinute)
+            : base(httpClient, maxRequestsPerMinute)
         {
             _apiKey = apiKey;
         }

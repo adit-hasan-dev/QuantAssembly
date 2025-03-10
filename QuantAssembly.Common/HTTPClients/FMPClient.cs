@@ -9,7 +9,7 @@ namespace QuantAssembly.Common
         private const string baseUrl = "https://financialmodelingprep.com/stable";
 
         public FMPClient(HttpClient httpClient, string apiKey)
-            : base(httpClient)
+            : base(httpClient, 20)
         {
             _apiKey = apiKey;
         }

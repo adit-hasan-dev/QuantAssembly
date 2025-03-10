@@ -24,6 +24,7 @@
 </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.0.1" />
+    <PackageReference Include="MarkDig" Version="0.40.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.40.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.40.0" />
   </ItemGroup>
