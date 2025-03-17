@@ -386,4 +386,6 @@ Example Responses:
 You will provide your analysis of each of the companies you curated and justify your reasoning with real data. Make sure to clearly state which direction the trend is in or is anticipated to be and the catalysts driving that trend.
 
 ## User Input
+```json
 {{ $context }}
+```

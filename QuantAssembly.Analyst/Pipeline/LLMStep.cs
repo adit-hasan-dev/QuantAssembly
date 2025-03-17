@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using QuantAssembly.Analyst.DataProvider;
 using QuantAssembly.Analyst.LLM;
 using QuantAssembly.Analyst.Models;
 using QuantAssembly.Common.Config;
@@ -17,6 +18,7 @@ namespace QuantAssembly.Analyst
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
             var llmService = serviceProvider.GetRequiredService<ILLMService>();
+            var marketNewsDataProvider = serviceProvider.GetRequiredService<IMarketNewsDataProvider>();
 
             // Curate candidates
             string systemPrompt = File.ReadAllText("LLM/Curator.System.Prompt.md");
@@ -25,7 +27,11 @@ namespace QuantAssembly.Analyst
             var llmRequest = new InvokeLLMRequest
             {
                 Prompt = systemPrompt,
-                Context = userContext
+                Context = userContext,
+                Plugins = new Dictionary<string, object>
+                {
+                    { "market_news", new MarketNewsPlugin(marketNewsDataProvider) }
+                }
             };
             logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM to curate stock symbols with {context.candidates.Count()} candidate symbols");
             CuratorResponsePayload curatorResponse = await llmService.InvokeLLM<CuratorResponsePayload>(llmRequest);
@@ -37,12 +43,17 @@ namespace QuantAssembly.Analyst
             {
                 candidates = curatorResponse.curatedSymbols.Select(curatedSymbol =>
                 {
+                    var candidate = context.candidates.Where(candidate => candidate.company.Symbol == curatedSymbol.Symbol).FirstOrDefault();
                     return new TradeManagerCandidates()
                     {
                         Symbol = curatedSymbol.Symbol,
                         TrendDirection = curatedSymbol.TrendDirection,
                         Analysis = curatedSymbol.Analysis,
                         Catalysts = curatedSymbol.Catalysts,
+                        LatestPrice = candidate.marketData.LatestPrice,
+                        AskPrice = candidate.marketData.AskPrice,
+                        BidPrice = candidate.marketData.BidPrice,
+                        IndicatorData = candidate.indicatorData,
                         OptionsContracts = context.optionsContractData.Where(contract => {
                             return contract.Symbol.Contains(curatedSymbol.Symbol, StringComparison.InvariantCultureIgnoreCase);
                         }).ToList()

@@ -33,7 +33,7 @@ namespace QuantAssembly.Analyst.LLM
         public async Task<TOutput> InvokeLLM<TOutput>(InvokeLLMRequest request)
         {
             logger.LogInfo($"[{nameof(AzureOpenAIService)}] Invoking LLM.");
-            Kernel kernel = BuildKernel(request.Plugins);
+            Kernel kernel = BuildKernel(request.Plugins); // Pass plugins dynamically
             logger.LogDebug($"[{nameof(AzureOpenAIService)}] Adding context:\n {request.Context}");
 
             var kernelArguments = new KernelArguments()
@@ -53,14 +53,15 @@ namespace QuantAssembly.Analyst.LLM
                 .RenderAsync(kernel, kernelArguments);
 
             // Enable planning 
-#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning disable SKEXP0010
             OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
             {
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
                 MaxTokens = 8192,
                 ResponseFormat = typeof(TOutput)
             };
-#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+#pragma warning restore SKEXP0010
+
             // Invoke the combined prompt using InvokePromptAsync
             var promptResult = await kernel.InvokePromptAsync(prompt, new(openAIPromptExecutionSettings));
 
@@ -70,7 +71,8 @@ namespace QuantAssembly.Analyst.LLM
         }
 
 
-        private Kernel BuildKernel(Dictionary<string, Type> plugins)
+
+        private Kernel BuildKernel(Dictionary<string, object> plugins)
         {
             var builder = Kernel.CreateBuilder();
 
@@ -82,16 +84,15 @@ namespace QuantAssembly.Analyst.LLM
             .Services.AddSingleton(this.marketNewsDataProvider);
 
             // Dynamically add plugins
-            foreach (var (pluginName, pluginType) in plugins)
+            foreach (var (pluginName, pluginInstance) in plugins)
             {
-                var pluginInstance = Activator.CreateInstance(pluginType);
                 if (pluginInstance != null)
                 {
                     builder.Plugins.AddFromObject(pluginInstance, pluginName);
                 }
                 else
                 {
-                    logger.LogWarn($"[{nameof(AzureOpenAIService)}] Failed to instantiate plugin: {pluginType.Name}");
+                    logger.LogWarn($"[{nameof(AzureOpenAIService)}] Failed to add plugin: {pluginName}");
                 }
             }
 

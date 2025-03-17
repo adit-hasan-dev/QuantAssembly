@@ -328,11 +328,12 @@ You will analyze each options contract in terms of profitability, risk profile a
 When choosing the list of contracts to recommend, consider how diversified the list is and any other advanced analysis techniques to minimize risk.
 
 ## Output 
+If there are no appropriate contracts to invest in, state that outcome. Otherwise use the following output instructions.
 
-Your answer should include:
+Your answer **must** include:
 1. A summary of the overall analysis
 2. A step by step reasoning section detailing key considerations.
-3. The list of candidates you have chosen. For each candidate, you will explain your reasoning and refer to real data provided when justifying your choices.
+3. The list of candidates you have chosen. For each candidate, you **must** explain your reasoning and refer to real data provided when justifying your choices.
 4. A table of the recommended contracts to buy. The table **must** contain the following columns:
    1. Contract Symbol
    2. Underlying asset symbol
@@ -349,4 +350,8 @@ Your answer should include:
 Finally, you will provide a summary of the total possible profit and total risk if one decides to follow your recommendations, assume the user has {{ $totalCapital }} USD maximum to invest.
 
 ## User Input
+
+Provide your answer for the following input:
+```json
 {{ $context }}
+```
