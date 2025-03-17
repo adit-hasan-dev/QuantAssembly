@@ -18,25 +18,53 @@ namespace QuantAssembly.Analyst
             var logger = serviceProvider.GetRequiredService<ILogger>();
             var llmService = serviceProvider.GetRequiredService<ILLMService>();
 
-            string systemPrompt = File.ReadAllText("LLM/SystemPrompt.md");
-            string userPrompt = File.ReadAllText("LLM/UserPrompt.md");
+            // Curate candidates
+            string systemPrompt = File.ReadAllText("LLM/Curator.System.Prompt.md");
             var userContext = JsonConvert.SerializeObject(context.candidates);
 
             var llmRequest = new InvokeLLMRequest
             {
-                SystemMessage = systemPrompt,
-                UserMessage = userPrompt,
-                Context = userContext,
+                Prompt = systemPrompt,
+                Context = userContext
+            };
+            logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM to curate stock symbols with {context.candidates.Count()} candidate symbols");
+            CuratorResponsePayload curatorResponse = await llmService.InvokeLLM<CuratorResponsePayload>(llmRequest);
+            logger.LogInfo($"[{nameof(LLMStep)}] Successfully called Curator agent and received {curatorResponse.curatedSymbols.Count()} curated symbols");
+
+            systemPrompt = File.ReadAllText("LLM/TradeManager.System.Prompt.md");
+            // filter options contracts by the symbols from curated companies
+            TradeManagerRequestPayload tradeManagerRequest = new ()
+            {
+                candidates = curatorResponse.curatedSymbols.Select(curatedSymbol =>
+                {
+                    return new TradeManagerCandidates()
+                    {
+                        Symbol = curatedSymbol.Symbol,
+                        TrendDirection = curatedSymbol.TrendDirection,
+                        Analysis = curatedSymbol.Analysis,
+                        Catalysts = curatedSymbol.Catalysts,
+                        OptionsContracts = context.optionsContractData.Where(contract => {
+                            return contract.Symbol.Contains(curatedSymbol.Symbol, StringComparison.InvariantCultureIgnoreCase);
+                        }).ToList()
+                    };
+                }).Where(candidate => candidate.OptionsContracts.Any()).ToList()
+            };
+
+            llmRequest = new InvokeLLMRequest
+            {
+                Prompt = systemPrompt,
+                Context = JsonConvert.SerializeObject(tradeManagerRequest),
                 Variables = new Dictionary<string, string>{
                     { "totalCapital", "10000" }
                 }
             };
 
-            logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM ...");
-            var response = await llmService.InvokeLLM(llmRequest);
-            logger.LogInfo($"[{nameof(LLMStep)}] Received response from LLM: {response.Items}");
+            // Generate report
+            logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM to generate final recommendation report with {tradeManagerRequest.candidates.Count()} curated symbols");
+            var response = await llmService.InvokeLLM<RiskmanagerResponsePayload>(llmRequest);
+            logger.LogInfo($"[{nameof(LLMStep)}] Successfully called TradeManager agent and received final report");
 
-            context.composedOutput = response.Content;
+            context.composedOutput = response.riskManagerResponse;
         }
     }
 }

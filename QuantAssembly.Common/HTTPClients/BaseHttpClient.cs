@@ -2,6 +2,7 @@ using System.Text.Json;
 using Polly;
 using Polly.Extensions.Http;
 using Polly.RateLimit;
+using Polly.Retry;
 
 namespace QuantAssembly.Common
 {
@@ -12,6 +13,7 @@ namespace QuantAssembly.Common
     {
         protected readonly HttpClient HttpClient;
         protected readonly IAsyncPolicy<HttpResponseMessage> RetryPolicy;
+        protected readonly AsyncRetryPolicy RateLimitRetryPolicy;
         private readonly AsyncRateLimitPolicy RateLimitPolicy;
 
         protected BaseHttpClient(HttpClient httpClient, int maxRequestsPerMinute)
@@ -28,6 +30,13 @@ namespace QuantAssembly.Common
 
             // Rate limit policy
             RateLimitPolicy = Policy.RateLimitAsync(maxRequestsPerMinute, TimeSpan.FromMinutes(1));
+
+            RateLimitRetryPolicy = Policy
+                .Handle<RateLimitRejectedException>()
+                .WaitAndRetryAsync(
+                    retryCount: 3,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))
+                );
         }
 
         /// <summary>
@@ -36,8 +45,9 @@ namespace QuantAssembly.Common
         /// </summary>
         protected async Task<T> GetAsync<T>(string requestUrl, CancellationToken cancellationToken = default)
         {
-            return await RateLimitPolicy!.ExecuteAsync(async () =>
-            {
+            return await RateLimitRetryPolicy.ExecuteAsync(
+                async () => await RateLimitPolicy!.ExecuteAsync(
+                    async () => {
                 HttpResponseMessage response = await RetryPolicy.ExecuteAsync(
                     () => HttpClient.GetAsync(requestUrl, cancellationToken)
                 );
@@ -54,7 +64,7 @@ namespace QuantAssembly.Common
                     throw new Exception($"Deserialization of response content from {requestUrl} returned null.");
                 }
                 return result;
-            });
+            }));
         }
     }
 }

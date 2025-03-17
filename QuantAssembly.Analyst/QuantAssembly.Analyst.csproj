@@ -15,10 +15,7 @@
   <None Update="appsettings.json">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
-    <None Update="LLM/SystemPrompt.md">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </None>
-      <None Update="LLM/UserPrompt.md">
+    <None Update="LLM/*.Prompt.md">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
 </ItemGroup>

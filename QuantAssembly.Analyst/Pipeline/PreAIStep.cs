@@ -18,13 +18,11 @@ namespace QuantAssembly.Analyst
             var candidates = (from company in context.companies
                               join marketData in context.marketData on company.Symbol equals marketData.Symbol
                               join indicators in context.indicatorData on company.Symbol equals indicators.Symbol
-                              join optionsContract in context.optionsContractData on company.Symbol equals optionsContract.Symbol
                               select new CandidateData
                               {
                                   company = company,
                                   marketData = marketData,
-                                  indicatorData = indicators,
-                                  optionsContractData = optionsContract
+                                  indicatorData = indicators
                               }).ToList();
 
             context.candidates = candidates;

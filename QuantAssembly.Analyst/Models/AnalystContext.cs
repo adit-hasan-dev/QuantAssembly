@@ -9,7 +9,6 @@ namespace QuantAssembly.Analyst
         public Company company { get; set; }
         public AnalystMarketData marketData { get; set; }
         public IndicatorData indicatorData { get; set; }
-        public OptionsContractData optionsContractData { get; set; }
     }
     public class AnalystContext : PipelineContext
     {

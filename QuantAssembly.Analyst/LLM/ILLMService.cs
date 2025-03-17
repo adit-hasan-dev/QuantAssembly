@@ -5,6 +5,6 @@ namespace QuantAssembly.Analyst.LLM
 {
     public interface ILLMService
     {
-        Task<ChatMessageContent> InvokeLLM(InvokeLLMRequest request);
+        Task<TOutput> InvokeLLM<TOutput>(InvokeLLMRequest request);
     }
 }
