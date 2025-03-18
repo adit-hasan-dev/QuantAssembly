@@ -1,0 +1,118 @@
+{
+    "candidates": [
+      {
+        "Symbol": "AAPL",
+        "TrendDirection": "Up",
+        "Analysis": "The RSI is 24.3, indicating heavily oversold conditions, possibly signaling a rebound in price as the stock attempts to consolidate.",
+        "Catalysts": "Strong earnings report and new product launch.",
+        "LatestPrice": 239.07,
+        "AskPrice": 239.50,
+        "BidPrice": 238.90,
+        "IndicatorData": {
+          "Symbol": "AAPL",
+          "RSI": 70.5,
+          "SMA_50": 230.45,
+          "SMA_200": 220.30,
+          "EMA_50": 232.10,
+          "MACD": 1.25,
+          "Signal": 1.10,
+          "Upper_Band": 240.00,
+          "Lower_Band": 220.00,
+          "ATR": 5.50,
+          "HistoricalHigh": 250.00,
+          "HistoricalLow": 180.00
+        },
+        "OptionsContracts": [
+          {
+            "Symbol": "AAPL230315C00240000",
+            "Name": "AAPL Mar 15 2025 Call 240",
+            "AskPrice": 0.29,
+            "BidPrice": 0.28,
+            "OptionType": "call",
+            "StrikePrice": 240.00,
+            "ExpirationDate": "2025-03-15",
+            "OpenInterest": 20109,
+            "ImpliedVolatility": 0.25,
+            "Delta": 0.2084,
+            "Gamma": 0.05,
+            "Theta": -0.02,
+            "Vega": 0.10,
+            "Rho": 0.03
+          },
+          {
+            "Symbol": "AAPL230315P00240000",
+            "Name": "AAPL Mar 15 2025 Put 240",
+            "AskPrice": 4.50,
+            "BidPrice": 4.30,
+            "OptionType": "put",
+            "StrikePrice": 240.00,
+            "ExpirationDate": "2025-03-15",
+            "OpenInterest": 1200,
+            "ImpliedVolatility": 0.28,
+            "Delta": -0.35,
+            "Gamma": 0.04,
+            "Theta": -0.03,
+            "Vega": 0.12,
+            "Rho": -0.02
+          }
+        ]
+      },
+      {
+        "Symbol": "MSFT",
+        "TrendDirection": "Down",
+        "Analysis": "as a low RSI of 23.5 and trades significantly below its 200-day SMA, with bearish MACD signals. Downside bias persists for the stock, making a put position favorable.",
+        "Catalysts": "Increased competition in cloud services.",
+        "LatestPrice": 299.25,
+        "AskPrice": 299.50,
+        "BidPrice": 299.00,
+        "IndicatorData": {
+          "Symbol": "MSFT",
+          "RSI": 45.2,
+          "SMA_50": 305.00,
+          "SMA_200": 310.50,
+          "EMA_50": 302.75,
+          "MACD": -0.75,
+          "Signal": -0.60,
+          "Upper_Band": 310.00,
+          "Lower_Band": 290.00,
+          "ATR": 6.00,
+          "HistoricalHigh": 350.00,
+          "HistoricalLow": 250.00
+        },
+        "OptionsContracts": [
+          {
+            "Symbol": "MSFT230315C00300000",
+            "Name": "MSFT Mar 15 2025 Call 300",
+            "AskPrice": 2.27,
+            "BidPrice": 2.26,
+            "OptionType": "call",
+            "StrikePrice": 300.00,
+            "ExpirationDate": "2025-03-15",
+            "OpenInterest": 3344,
+            "ImpliedVolatility": 0.8517,
+            "Delta": 0.55,
+            "Gamma": 0.06,
+            "Theta": -0.01,
+            "Vega": 0.08,
+            "Rho": 0.04
+          },
+          {
+            "Symbol": "MSFT230315P00300000",
+            "Name": "MSFT Mar 15 2025 Put 300",
+            "AskPrice": 7.00,
+            "BidPrice": 6.80,
+            "OptionType": "put",
+            "StrikePrice": 300.00,
+            "ExpirationDate": "2025-03-15",
+            "OpenInterest": 1800,
+            "ImpliedVolatility": 0.30,
+            "Delta": -0.45,
+            "Gamma": 0.05,
+            "Theta": -0.02,
+            "Vega": 0.11,
+            "Rho": -0.03
+          }
+        ]
+      }
+    ]
+  }

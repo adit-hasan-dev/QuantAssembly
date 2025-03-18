@@ -57,7 +57,7 @@ namespace QuantAssembly.Analyst.LLM
             OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
             {
                 FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-                MaxTokens = 8192,
+                MaxTokens = request.MaxTokens,
                 ResponseFormat = typeof(TOutput)
             };
 #pragma warning restore SKEXP0010

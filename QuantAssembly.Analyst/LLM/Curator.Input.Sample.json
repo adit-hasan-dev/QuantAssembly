@@ -1,0 +1,82 @@
+{
+    "candidates": [
+      {
+        "company": {
+          "Symbol": "AAPL",
+          "Security": "Common Stock",
+          "GICSSector": "Information Technology",
+          "GICSSubIndustry": "Technology Hardware, Storage & Peripherals",
+          "HeadquartersLocation": "Cupertino, California, USA",
+          "Dateadded": "1980-12-12T00:00:00Z",
+          "CIK": "0000320193",
+          "Founded": "1976"
+        },
+        "marketData": {
+          "Symbol": "AAPL",
+          "LatestPrice": 150.00,
+          "AskPrice": 150.10,
+          "BidPrice": 149.90,
+          "Open": 148.00,
+          "Close": 149.50,
+          "High": 151.00,
+          "Low": 147.50,
+          "Volume": 1000000,
+          "Vwap": 149.75,
+          "TradeCount": 5000
+        },
+        "indicatorData": {
+          "Symbol": "AAPL",
+          "RSI": 55.0,
+          "SMA_50": 145.00,
+          "SMA_200": 140.00,
+          "EMA_50": 146.00,
+          "MACD": 1.5,
+          "Signal": 1.2,
+          "Upper_Band": 152.00,
+          "Lower_Band": 148.00,
+          "ATR": 2.5,
+          "HistoricalHigh": 182.94,
+          "HistoricalLow": 0.51
+        }
+      },
+      {
+        "company": {
+          "Symbol": "TSLA",
+          "Security": "Common Stock",
+          "GICSSector": "Consumer Discretionary",
+          "GICSSubIndustry": "Automobile Manufacturers",
+          "HeadquartersLocation": "Palo Alto, California, USA",
+          "Dateadded": "2010-06-29T00:00:00Z",
+          "CIK": "0001318605",
+          "Founded": "2003"
+        },
+        "marketData": {
+          "Symbol": "TSLA",
+          "LatestPrice": 700.00,
+          "AskPrice": 700.50,
+          "BidPrice": 699.50,
+          "Open": 690.00,
+          "Close": 695.00,
+          "High": 710.00,
+          "Low": 685.00,
+          "Volume": 2000000,
+          "Vwap": 697.50,
+          "TradeCount": 10000
+        },
+        "indicatorData": {
+          "Symbol": "TSLA",
+          "RSI": 60.0,
+          "SMA_50": 680.00,
+          "SMA_200": 650.00,
+          "EMA_50": 685.00,
+          "MACD": 2.0,
+          "Signal": 1.8,
+          "Upper_Band": 715.00,
+          "Lower_Band": 685.00,
+          "ATR": 5.0,
+          "HistoricalHigh": 900.40,
+          "HistoricalLow": 14.98
+        }
+      }
+    ]
+  }

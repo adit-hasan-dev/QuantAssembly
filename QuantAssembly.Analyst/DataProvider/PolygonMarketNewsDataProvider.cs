@@ -19,22 +19,26 @@ namespace QuantAssembly.Analyst.DataProvider
         {
             logger?.LogInfo($"[{nameof(PolygonMarketNewsDataProvider)}] Retrieving market news for symbol: {symbol}");
             var response = await client.GetNewsAsync(symbol, limit, earliestPublishTime ?? DateTime.UtcNow.AddMonths(-2));
+            List<MarketNewsArticle> marketNewsArticles = new();
 
-            List<MarketNewsArticle> marketNewsArticles = response.Results.Select(result =>
+            if (response?.Results?.Any() ?? false)
             {
-                return new MarketNewsArticle{
-                    Title = result.Title,
-                    Author = result.Author,
-                    TickersMentioned = result.Tickers,
-                    Description = result.Description,
-                    PublishedUTC = result.PublishedUtc,
-                    Insight = result.Insights
-                        .Where(i => i.Ticker.Equals(symbol, StringComparison.InvariantCultureIgnoreCase))
-                        .Select(i => new MarketNewsInsight{ Sentiment = i.Sentiment, Reasoning = i.SentimentReasoning})
-                        .First(),
-                    Keywords = result.Keywords
-                };
-            }).ToList();
+                marketNewsArticles = response.Results.Select(result =>
+                {
+                    return new MarketNewsArticle{
+                        Title = result.Title,
+                        Author = result.Author,
+                        TickersMentioned = result.Tickers,
+                        Description = result.Description,
+                        PublishedUTC = result.PublishedUtc,
+                        Insight = result.Insights
+                            .Where(i => i.Ticker.Equals(symbol, StringComparison.InvariantCultureIgnoreCase))
+                            .Select(i => new MarketNewsInsight{ Sentiment = i.Sentiment, Reasoning = i.SentimentReasoning})
+                            .First(),
+                        Keywords = result.Keywords
+                    };
+                }).ToList();
+            }
 
             logger?.LogInfo($"Successfully retrieved {marketNewsArticles.Count()} articles for symbol: {symbol}");
             return marketNewsArticles;

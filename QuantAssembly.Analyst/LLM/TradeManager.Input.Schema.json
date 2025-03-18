@@ -1,0 +1,190 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "TradeManagerRequestPayload",
+    "type": "object",
+    "properties": {
+      "candidates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "Symbol": {
+              "type": "string",
+              "description": "The symbol of the financial instrument."
+            },
+            "TrendDirection": {
+              "type": "string",
+              "description": "The trend direction for the financial instrument."
+            },
+            "Analysis": {
+              "type": "string",
+              "description": "The analysis or insights for the financial instrument."
+            },
+            "Catalysts": {
+              "type": "string",
+              "description": "The catalysts driving the financial instrument's performance."
+            },
+            "LatestPrice": {
+              "type": "number",
+              "description": "The most recent price of the financial instrument."
+            },
+            "AskPrice": {
+              "type": "number",
+              "description": "The ask price of the financial instrument."
+            },
+            "BidPrice": {
+              "type": "number",
+              "description": "The bid price of the financial instrument."
+            },
+            "IndicatorData": {
+              "type": "object",
+              "properties": {
+                "Symbol": {
+                  "type": "string",
+                  "description": "The symbol of the financial instrument."
+                },
+                "RSI": {
+                  "type": "number",
+                  "description": "The Relative Strength Index (RSI) calculated over a 14-day period."
+                },
+                "SMA_50": {
+                  "type": "number",
+                  "description": "The Simple Moving Average (SMA) calculated over a 50-day period."
+                },
+                "SMA_200": {
+                  "type": "number",
+                  "description": "The Simple Moving Average (SMA) calculated over a 200-day period."
+                },
+                "EMA_50": {
+                  "type": "number",
+                  "description": "The Exponential Moving Average (EMA) calculated over a 50-day period."
+                },
+                "MACD": {
+                  "type": "number",
+                  "description": "The Moving Average Convergence Divergence (MACD)."
+                },
+                "Signal": {
+                  "type": "number",
+                  "description": "The MACD signal line."
+                },
+                "Upper_Band": {
+                  "type": "number",
+                  "description": "The upper Bollinger Band calculated over a 20-day period."
+                },
+                "Lower_Band": {
+                  "type": "number",
+                  "description": "The lower Bollinger Band calculated over a 20-day period."
+                },
+                "ATR": {
+                  "type": "number",
+                  "description": "The Average True Range (ATR) calculated over a 14-day period."
+                },
+                "HistoricalHigh": {
+                  "type": "number",
+                  "description": "The highest historical price calculated from a specified period."
+                },
+                "HistoricalLow": {
+                  "type": "number",
+                  "description": "The lowest historical price calculated from a specified period."
+                }
+              },
+              "required": [
+                "Symbol",
+                "RSI",
+                "SMA_50",
+                "SMA_200",
+                "EMA_50",
+                "MACD",
+                "Signal",
+                "Upper_Band",
+                "Lower_Band",
+                "ATR",
+                "HistoricalHigh",
+                "HistoricalLow"
+              ]
+            },
+            "OptionsContracts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Symbol": {
+                    "type": "string",
+                    "description": "The symbol of the option contract."
+                  },
+                  "Name": {
+                    "type": "string",
+                    "description": "The name of the option contract."
+                  },
+                  "AskPrice": {
+                    "type": "number",
+                    "description": "The ask price of the option."
+                  },
+                  "BidPrice": {
+                    "type": "number",
+                    "description": "The bid price of the option."
+                  },
+                  "OptionType": {
+                    "type": "string",
+                    "enum": ["call", "put"],
+                    "description": "The type of the option (call or put)."
+                  },
+                  "StrikePrice": {
+                    "type": "number",
+                    "description": "The strike price of the option."
+                  },
+                  "ExpirationDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "The expiration date of the option contract."
+                  },
+                  "OpenInterest": {
+                    "type": "number",
+                    "description": "The open interest of the option."
+                  },
+                  "ImpliedVolatility": {
+                    "type": "number",
+                    "description": "The implied volatility of the option."
+                  },
+                  "Delta": {
+                    "type": "number",
+                    "description": "The delta of the option."
+                  },
+                  "Gamma": {
+                    "type": "number",
+                    "description": "The gamma of the option."
+                  },
+                  "Theta": {
+                    "type": "number",
+                    "description": "The theta of the option."
+                  },
+                  "Vega": {
+                    "type": "number",
+                    "description": "The vega of the option."
+                  },
+                  "Rho": {
+                    "type": "number",
+                    "description": "The rho of the option."
+                  }
+                },
+                "required": [
+                  "Symbol",
+                  "OptionType",
+                  "StrikePrice",
+                  "ExpirationDate"
+                ]
+              }
+            }
+          },
+          "required": [
+            "Symbol",
+            "TrendDirection",
+            "Analysis",
+            "IndicatorData",
+            "OptionsContracts"
+          ]
+        }
+      }
+    },
+    "required": ["candidates"]
+  }

@@ -1,0 +1,164 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Candidates",
+    "type": "object",
+    "properties": {
+      "candidates": {
+        "type": "array",
+        "description": "List of candidate data",
+        "items": {
+          "type": "object",
+          "properties": {
+            "company": {
+              "type": "object",
+              "description": "Information about the company",
+              "properties": {
+                "Symbol": {
+                  "type": "string",
+                  "description": "Unique ticker symbol of the company"
+                },
+                "Security": {
+                  "type": "string",
+                  "description": "Type of security"
+                },
+                "GICSSector": {
+                  "type": "string",
+                  "description": "Global Industry Classification Standard sector"
+                },
+                "GICSSubIndustry": {
+                  "type": "string",
+                  "description": "Global Industry Classification Standard sub-industry"
+                },
+                "HeadquartersLocation": {
+                  "type": "string",
+                  "description": "Location of the company's headquarters"
+                },
+                "Dateadded": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Date when the company was added"
+                },
+                "CIK": {
+                  "type": "string",
+                  "description": "Central Index Key of the company"
+                },
+                "Founded": {
+                  "type": "string",
+                  "description": "Year when the company was founded"
+                }
+              },
+              "required": ["Symbol", "Security", "GICSSector", "GICSSubIndustry", "HeadquartersLocation", "Dateadded", "CIK", "Founded"]
+            },
+            "marketData": {
+              "type": "object",
+              "description": "Analyst market data",
+              "properties": {
+                "Symbol": {
+                  "type": "string",
+                  "description": "Ticker symbol of the asset"
+                },
+                "LatestPrice": {
+                  "type": "number",
+                  "description": "Most recent trading price"
+                },
+                "AskPrice": {
+                  "type": "number",
+                  "description": "Current ask price"
+                },
+                "BidPrice": {
+                  "type": "number",
+                  "description": "Current bid price"
+                },
+                "Open": {
+                  "type": "number",
+                  "description": "Opening price of the trading day"
+                },
+                "Close": {
+                  "type": "number",
+                  "description": "Closing price of the previous trading day"
+                },
+                "High": {
+                  "type": "number",
+                  "description": "Highest price during the trading day"
+                },
+                "Low": {
+                  "type": "number",
+                  "description": "Lowest price during the trading day"
+                },
+                "Volume": {
+                  "type": "number",
+                  "description": "Total trading volume"
+                },
+                "Vwap": {
+                  "type": "number",
+                  "description": "Volume-weighted average price"
+                },
+                "TradeCount": {
+                  "type": "number",
+                  "description": "Total number of trades"
+                }
+              },
+              "required": ["Symbol", "LatestPrice", "AskPrice", "BidPrice", "Open", "Close", "High", "Low", "Volume", "Vwap", "TradeCount"]
+            },
+            "indicatorData": {
+              "type": "object",
+              "description": "Technical indicator data",
+              "properties": {
+                "Symbol": {
+                  "type": "string",
+                  "description": "Ticker symbol of the asset"
+                },
+                "RSI": {
+                  "type": "number",
+                  "description": "Relative Strength Index"
+                },
+                "SMA_50": {
+                  "type": "number",
+                  "description": "50-day Simple Moving Average"
+                },
+                "SMA_200": {
+                  "type": "number",
+                  "description": "200-day Simple Moving Average"
+                },
+                "EMA_50": {
+                  "type": "number",
+                  "description": "50-day Exponential Moving Average"
+                },
+                "MACD": {
+                  "type": "number",
+                  "description": "Moving Average Convergence Divergence"
+                },
+                "Signal": {
+                  "type": "number",
+                  "description": "Signal line value for MACD"
+                },
+                "Upper_Band": {
+                  "type": "number",
+                  "description": "Upper Bollinger Band value"
+                },
+                "Lower_Band": {
+                  "type": "number",
+                  "description": "Lower Bollinger Band value"
+                },
+                "ATR": {
+                  "type": "number",
+                  "description": "Average True Range"
+                },
+                "HistoricalHigh": {
+                  "type": "number",
+                  "description": "All-time highest price"
+                },
+                "HistoricalLow": {
+                  "type": "number",
+                  "description": "All-time lowest price"
+                }
+              },
+              "required": ["Symbol", "RSI", "SMA_50", "SMA_200", "EMA_50", "MACD", "Signal", "Upper_Band", "Lower_Band", "ATR", "HistoricalHigh", "HistoricalLow"]
+            }
+          },
+          "required": ["company", "marketData", "indicatorData"]
+        }
+      }
+    },
+    "required": ["candidates"]
+  }

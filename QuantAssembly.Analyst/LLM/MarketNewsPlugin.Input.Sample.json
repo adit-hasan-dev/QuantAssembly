@@ -1,0 +1,41 @@
+[
+    {
+        "title": "25% of Warren Buffett-Led Berkshire Hathaway's $288 Billion Portfolio Is Invested in Only 1 Stock",
+        "author": "The Motley Fool",
+        "tickers_mentioned": [
+            "AAPL",
+            "BRK.A",
+            "BRK.B"
+        ],
+        "description": "Warren Buffett's Berkshire Hathaway has invested 25% of its $288 billion portfolio in Apple, but investors should be cautious about Apple's current growth prospects and valuation.",
+        "published_utc": "2025-03-08T14:30:00Z",
+        "insight": {
+            "sentiment": "negative",
+            "reasoning": "The article suggests that Apple's growth prospects are stagnating, and its valuation is expensive with a P/E ratio of 37.8, a 65% premium to the trailing-10-year average."
+        },
+        "keywords": [
+            "Warren Buffett",
+            "Berkshire Hathaway",
+            "Apple"
+        ]
+    },
+    {
+        "title": "Apple Intelligence Is Fueling iPhone Upgrades in Positive News for Apple Stock Investors",
+        "author": "The Motley Fool",
+        "tickers_mentioned": [
+            "AAPL"
+        ],
+        "description": "Apple's latest catalyst could increase consumer upgrade activity, which is positive news for Apple stock investors.",
+        "published_utc": "2025-03-07T12:02:00Z",
+        "insight": {
+            "sentiment": "positive",
+            "reasoning": "The article suggests that Apple's latest iPhone features could increase consumer upgrade activity, which benefits stock investors."
+        },
+        "keywords": [
+            "Apple",
+            "iPhone",
+            "stock",
+            "investors"
+        ]
+    }
+]

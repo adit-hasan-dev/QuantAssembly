@@ -20,9 +20,13 @@ namespace QuantAssembly.Analyst
             var llmService = serviceProvider.GetRequiredService<ILLMService>();
             var marketNewsDataProvider = serviceProvider.GetRequiredService<IMarketNewsDataProvider>();
 
-            // Curate candidates
+            // Curator LLM call
             string systemPrompt = File.ReadAllText("LLM/Curator.System.Prompt.md");
             var userContext = JsonConvert.SerializeObject(context.candidates);
+            string curatorInputJsonSchema = Common.Utility.ReadJsonAsMinifiedString("LLM/Curator.Input.Schema.json");
+            string curatorInputJsonSample = Common.Utility.ReadJsonAsMinifiedString("LLM/Curator.Input.Sample.json");
+            string market_news_plugin_schema = Common.Utility.ReadJsonAsMinifiedString("LLM/MarketNewsPlugin.Input.Schema.json");
+            string market_news_plugin_sample = Common.Utility.ReadJsonAsMinifiedString("LLM/MarketNewsPlugin.Input.Sample.json");
 
             var llmRequest = new InvokeLLMRequest
             {
@@ -30,14 +34,26 @@ namespace QuantAssembly.Analyst
                 Context = userContext,
                 Plugins = new Dictionary<string, object>
                 {
-                    { "market_news", new MarketNewsPlugin(marketNewsDataProvider) }
-                }
+                    { "market_news", new MarketNewsPlugin(marketNewsDataProvider) },
+                },
+                Variables = new Dictionary<string, string>
+                {
+                    { "curator_input_schema", curatorInputJsonSchema },
+                    { "curator_input_sample", curatorInputJsonSample },
+                    { "market_news_plugin_schema", market_news_plugin_schema },
+                    { "market_news_plugin_sample", market_news_plugin_sample }
+                },
+                MaxTokens = 8192
             };
             logger.LogInfo($"[{nameof(LLMStep)}] Invoking LLM to curate stock symbols with {context.candidates.Count()} candidate symbols");
             CuratorResponsePayload curatorResponse = await llmService.InvokeLLM<CuratorResponsePayload>(llmRequest);
             logger.LogInfo($"[{nameof(LLMStep)}] Successfully called Curator agent and received {curatorResponse.curatedSymbols.Count()} curated symbols");
 
+            
+            // TradeManager LLM call
             systemPrompt = File.ReadAllText("LLM/TradeManager.System.Prompt.md");
+            string tradeManagerInputJsonSchema = Common.Utility.ReadJsonAsMinifiedString("LLM/TradeManager.Input.Schema.json");
+            string tradeManagerInputJsonSample = Common.Utility.ReadJsonAsMinifiedString("LLM/TradeManager.Input.Sample.json");
             // filter options contracts by the symbols from curated companies
             TradeManagerRequestPayload tradeManagerRequest = new ()
             {
@@ -66,8 +82,11 @@ namespace QuantAssembly.Analyst
                 Prompt = systemPrompt,
                 Context = JsonConvert.SerializeObject(tradeManagerRequest),
                 Variables = new Dictionary<string, string>{
-                    { "totalCapital", "10000" }
-                }
+                    { "totalCapital", "10000" },
+                    { "trademanager_input_schema", tradeManagerInputJsonSchema },
+                    { "trademanager_input_sample", tradeManagerInputJsonSample }
+                },
+                MaxTokens = 10000
             };
 
             // Generate report

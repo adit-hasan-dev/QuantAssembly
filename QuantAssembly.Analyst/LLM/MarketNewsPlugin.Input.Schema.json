@@ -1,0 +1,62 @@
+{
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "title": {
+                "type": "string",
+                "description": "Title of the news article"
+            },
+            "author": {
+                "type": "string",
+                "description": "Author of the article"
+            },
+            "tickers_mentioned": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "List of ticker symbols mentioned in the article"
+            },
+            "description": {
+                "type": "string",
+                "description": "Summary of the article's content"
+            },
+            "published_utc": {
+                "type": "string",
+                "format": "date-time",
+                "description": "UTC publication date and time of the article"
+            },
+            "insight": {
+                "type": "object",
+                "properties": {
+                    "sentiment": {
+                        "type": "string",
+                        "description": "Overall sentiment of the article (e.g., positive, negative, neutral)"
+                    },
+                    "reasoning": {
+                        "type": "string",
+                        "description": "Explanation supporting the sentiment assessment"
+                    }
+                },
+                "description": "AI-generated insights regarding the sentiment and its reasoning"
+            },
+            "keywords": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                },
+                "description": "Key topics or terms related to the article"
+            }
+        },
+        "required": [
+            "title",
+            "author",
+            "tickers_mentioned",
+            "description",
+            "published_utc",
+            "insight",
+            "keywords"
+        ]
+    }
+}

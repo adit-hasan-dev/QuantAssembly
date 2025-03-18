@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Common
@@ -16,6 +18,18 @@ namespace QuantAssembly.Common
                 TimePeriod.OneYear => TimeSpan.FromDays(365),
                 _ => throw new ArgumentOutOfRangeException()
             };
+        }
+
+        public static string ReadJsonAsMinifiedString(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                throw new FileNotFoundException("The specified JSON file was not found.", fileName);
+            }
+
+            string jsonString = File.ReadAllText(fileName);
+            var jsonNode = JsonNode.Parse(jsonString);
+            return jsonNode.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
         }
     }
 }

@@ -25,7 +25,7 @@ namespace QuantAssembly.Analyst
                 optionsContracts.AddRange(contract);
             }
 
-            logger.LogInfo($"[{nameof(OptionsFilterStep)}] Successfully retrieved {optionsContracts.Count()} for {context.indicatorData.Count()} symbols");
+            logger.LogInfo($"[{nameof(OptionsFilterStep)}] Successfully retrieved {optionsContracts.Count()} contracts for {context.indicatorData.Count()} symbols");
 
             logger.LogInfo($"[{nameof(OptionsFilterStep)}] Starting to filter options contracts.");
 
