@@ -1,9 +1,9 @@
 namespace QuantAssembly.Ledger
 {
     using Newtonsoft.Json;
-    using QuantAssembly.Common.Config;
     using QuantAssembly.Common.Logging;
     using QuantAssembly.Common.Models;
+    using QuantAssembly.Models;
     using System.Collections.Generic;
     using System.IO;
 
@@ -14,9 +14,9 @@ namespace QuantAssembly.Ledger
         private ILogger logger;
         private bool disposed = false;
 
-        public Ledger(Config config, ILogger logger)
+        public Ledger(string ledgerFilePath, ILogger logger)
         {
-            this.filePath = config.LedgerFilePath;
+            this.filePath = ledgerFilePath;
             this.logger = logger;
 
             if (!File.Exists(filePath))

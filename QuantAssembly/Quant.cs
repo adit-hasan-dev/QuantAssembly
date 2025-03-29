@@ -1,18 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
-using QuantAssembly.Common.Constants;
-using QuantAssembly.RiskManagement;
 using QuantAssembly.Strategy;
-using QuantAssembly.TradeManager;
-using Validator = QuantAssembly.Utility.Validator;
-using QuantAssembly.Common.Models;
+using QuantAssembly.Common.Pipeline;
+using QuantAssembly.RiskManagement;
+using QuantAssembly.Models;
+using Newtonsoft.Json;
 
 namespace QuantAssembly
 {
@@ -20,81 +17,75 @@ namespace QuantAssembly
     {
         private Config config;
         private ILogger logger;
-
-        private ServiceProvider serviceProvider;
-        private IAccountDataProvider accountDataProvider;
-        private IMarketDataProvider marketDataProvider;
-        private IIndicatorDataProvider IndicatorDataProvider;
-
-        private IStrategyProcessor strategyProcessor;
-        private IRiskManager riskManager;
-        private ITradeManager tradeManager;
-
-        private int pollingIntervalInMs;
         private bool shouldTerminate;
-        private AccountData accountData;
+        private int pollingIntervalInMs;
+        private ServiceProvider serviceProvider;
+        private IMarketDataProvider marketDataProvider;
+        private ILedger ledger;
 
         public Quant()
         {
-            Initialize();
+            this.config = ConfigurationLoader.LoadConfiguration<Models.Config>();
+            InitializeDependencies();
             logger = serviceProvider.GetRequiredService<ILogger>();
+            ledger = serviceProvider.GetRequiredService<ILedger>();
+
             logger.LogInfo("Initializing Quant...");
 
-            // Load all strategies
-            logger.LogInfo($"[Quant] Loading all strategies.");
-            this.strategyProcessor = new StrategyProcessor(logger);
-            foreach (KeyValuePair<string, string>pair in config.TickerStrategyMap)
+            this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
+
+            pollingIntervalInMs = config.PollingIntervalInMs;
+            logger.LogInfo("Successfully initialized Quant.");
+        }
+
+        public async Task Run()
+        {
+            var pipeline = new PipelineBuilder<QuantContext>(this.serviceProvider, this.config)
+                .AddStep<InitStep>()
+                .AddStep<GenerateExitSignalsStep>()
+                .AddStep<GenerateEntrySignalsStep>()
+                .AddStep<ClosePositionsStep>()
+                .AddStep<RiskManagementStep>()
+                .AddStep<OpenPositionsStep>()
+                .Build();
+
+            InitializeStrategies(pipeline.GetContext(), ledger);
+            logger.LogInfo($"[ReQuant::Run] Starting main loop with polling interval: {pollingIntervalInMs}");
+
+            while (!shouldTerminate)
             {
                 try
                 {
-                    this.strategyProcessor.LoadStrategyFromFile(pair.Key, pair.Value);
+                    await pipeline.Execute();
                 }
                 catch (Exception ex)
                 {
                     logger.LogError(ex);
                 }
-            }
-            this.accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
-            this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
-            this.IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
-            this.riskManager = new PercentageAccountValueRiskManager(serviceProvider, config);
-            this.tradeManager = new IBGWTradeManager(serviceProvider);
-            pollingIntervalInMs = config.PollingIntervalInMs;
-            logger.LogInfo("Successfully initialized Quant.");
-        }
 
-        public void Run()
-        {
-            logger.LogInfo($"[Quant::Run] Starting main loop with polling interval: {pollingIntervalInMs}");
-            var ledger = serviceProvider.GetRequiredService<ILedger>();
-            while (!shouldTerminate)
-            {
-                ProcessSignals(ledger);
                 logger.LogInfo($"Sleeping for {pollingIntervalInMs}ms until next iteration");
-                Thread.Sleep(pollingIntervalInMs);
+                await Task.Delay(pollingIntervalInMs);
             }
         }
 
         public void Terminate()
         {
-            logger.LogInfo($"[Quant] Signal to terminate application received. Gracefully shutting down after completing current iteration.");
+            logger.LogInfo($"[ReQuant] Signal to terminate application received. Gracefully shutting down after completing current iteration.");
             shouldTerminate = true;
         }
 
-        private void Initialize()
+        private void InitializeDependencies()
         {
-            config = ConfigurationLoader.LoadConfiguration<Config>();
             var services = new ServiceCollection();
             serviceProvider = services
-            .AddSingleton<Config>()
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                return new Logger(config, isDevEnv: false);
+                return new Logger(this.config, isDevEnv: false);
             })
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
-                return new Ledger.Ledger(config, logger);
+                return new Ledger.Ledger(this.config.LedgerFilePath, logger);
             })
             .AddSingleton<IIBGWClient, IBGWClient>(provider =>
             {
@@ -131,12 +122,29 @@ namespace QuantAssembly
                 var logger = provider.GetRequiredService<ILogger>();
                 return new IBGWMarketDataProvider(client, logger);
             })
+            .AddSingleton<IRiskManager, PercentageAccountValueRiskManager>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger>();
+                return new PercentageAccountValueRiskManager(provider, this.config);
+            })
             .BuildServiceProvider();
         }
-        
-        private async void ProcessSignals(ILedger ledger)
+
+        private void InitializeStrategies(QuantContext context, ILedger ledger)
         {
-            logger.LogInfo("[Quant::ProcessSignals] Processing Signals ...");
+            logger.LogInfo($"[{nameof(Quant)}] Loading all strategies.");
+            context.strategyProcessor = new StrategyProcessor(logger);
+            foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
+            {
+                try
+                {
+                    context.strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex);
+                }
+            }
 
             var openPositions = ledger.GetOpenPositions();
             this.marketDataProvider.FlushMarketDataCache();
@@ -148,195 +156,10 @@ namespace QuantAssembly
                 logger.LogInfo($"Found {retiredTickers.Count()} symbols with open positions but no strategy defined. Loading the original strategy from positions in SellOnly mode");
                 foreach (var ticker in retiredTickers)
                 {
-                    this.strategyProcessor.LoadStrategyFromContent(ticker.Symbol, ticker.StrategyDefinition);
-                    this.strategyProcessor.SetStrategyStateForSymbol(ticker.Symbol, StrategyState.SellOnly);
+                    context.strategyProcessor.LoadStrategyFromContent(ticker.Symbol, ticker.StrategyDefinition);
+                    context.strategyProcessor.SetStrategyStateForSymbol(ticker.Symbol, StrategyState.SellOnly);
                 }
             }
-
-            var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-            var filteredPositions = new List<Position>();
-            foreach (var position in openPositions)
-            {
-                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, DateTime.UtcNow))
-                {
-                    filteredPositions.Add(position);
-                }
-                else
-                {
-                    logger.LogInfo($"[Quant::ProcessSignals] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
-                }
-            }
-
-            // Process exit signals for all open positions
-            foreach (var position in filteredPositions)
-            {
-                Validator.AssertPropertiesNonNull(
-                    position, 
-                    new List<string>{
-                        "PositionGuid",
-                        "Symbol",
-                        "OpenTime",
-                        "Currency",
-                        "OpenPrice",
-                        "CurrentPrice",
-                        "Quantity",
-                        "Strategy",
-                        "StrategyDefinition"
-                    });
-                var strategy = this.strategyProcessor.GetStrategy(position.Symbol);
-                if (strategy.State != StrategyState.Halted)
-                {
-                    var marketData = await marketDataProvider.GetMarketDataAsync(position.Symbol);
-                    var histData = IndicatorDataProvider.GetIndicatorDataAsync(position.Symbol).Result;
-                    ProcessExitSignal(position, marketData, histData);
-                }
-                else
-                {
-                    logger.LogInfo($"[Quant::ProcessSignals] Strategy {strategy.Name} for symbol {position.Symbol} is halted. Not processing any exit signals");
-                }
-            }
-
-            if (this.riskManager.shouldHaltNewTrades(accountData))
-            {
-                logger.LogInfo($"[Quant::ProcesSignals] OPENING NEW POSITIONS HALTED! PLEASE CHECK PORTFOLIO STATE.");
-                return;
-            }
-
-            List<Position> positionsOpened = new List<Position>();
-            foreach (var symbol in config.TickerStrategyMap.Keys)
-            {
-                bool isWithinTradingHours = await marketDataProvider.IsWithinTradingHours(symbol, DateTime.UtcNow);
-                if (!isWithinTradingHours)
-                {
-                    logger.LogInfo($"[Quant::ProcessSignals] Not processing entry signals for symbol: {symbol} since it is outside its trading hours.");
-                    continue;
-                }
-                var strategy = this.strategyProcessor.GetStrategy(symbol);
-
-                if (strategy.State == StrategyState.Active)
-                {
-                    var marketData = await marketDataProvider.GetMarketDataAsync(symbol);
-                    var histData = IndicatorDataProvider.GetIndicatorDataAsync(symbol).Result;
-                    ProcessEntrySignal(symbol, positionsOpened, marketData, histData);
-                }
-                else
-                {
-                    logger.LogInfo($"[Quant::ProcessSignals] Strategy {strategy.Name} for symbol {symbol} is halted. Not processing any entry signals");
-                }
-            }
-        }
-
-        private async void ProcessExitSignal(Position position, MarketData marketData, IndicatorData histData)
-        {
-            logger.LogInfo($"[Quant::ProcessExitSignal] Processing exit signals for {position.Symbol}");
-            accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-
-            // Update current price according to latest market data for position
-            position.CurrentPrice = marketData.LatestPrice;
-            var closeSignal = strategyProcessor.EvaluateCloseSignal(marketData, histData, position);
-            if (closeSignal != SignalType.None)
-            {
-                logger.LogInfo($"[Quant::ProcessExitSignal] Exit conditions met for position: {position}, SignalType: {closeSignal}");
-
-                // For now, we don't engage the risk manager to close positions
-                // We just sell off the entire position
-                // TODO: Hard-coding in the order type as a market sell, need to support others
-                var result = await tradeManager.ClosePositionAsync(position, OrderType.Market);
-                // TODO: Handle unsuccessful transactions
-                if (result.TransactionState == TransactionState.Completed)
-                {
-                    Validator.AssertPropertiesNonNull(
-                    position, 
-                    new List<string>{
-                        "PositionGuid",
-                        "Symbol",
-                        "OpenTime",
-                        "CloseTime",
-                        "Currency",
-                        "OpenPrice",
-                        "ClosePrice",
-                        "CurrentPrice",
-                        "Quantity",
-                        "ProfitOrLoss",
-                        "Strategy",
-                        "StrategyDefinition"
-                    });
-                }
-                else
-                {
-                    logger.LogInfo($"[Quant::ProcessExitSignal] Failed to close position: {position}");
-                }
-            }
-            else
-            {
-                logger.LogInfo($"[Quant::ProcessExitSignal] Exit conditions weren't met for position: {position}");
-            }
-
-            logger.LogInfo($"[Quant::ProcessExitSignal] Successfully processed exit signals for position: {position}");
-        }
-
-        private async void ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, IndicatorData histData)
-        {
-            logger.LogInfo($"[Quant::ProcessEntrySignal] Processing Entry Signals for {symbol}");
-            accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-            var openSignal = strategyProcessor.EvaluateOpenSignal(marketData, accountData, histData, symbol);
-            if (openSignal != SignalType.None)
-            {
-                var position = PrepareOpenPosition(symbol, marketData);
-                if (riskManager.ComputePositionSize(marketData, histData, accountData, position))
-                {
-                    // TODO: Current only using market buys. Need to support other types like limit buys
-                    var result = await tradeManager.OpenPositionAsync(position, OrderType.Market);
-                    if (result.TransactionState == TransactionState.Completed)
-                    {
-                        Validator.AssertPropertiesNonNull(
-                            position, 
-                            new List<string>{
-                                "PositionGuid",
-                                "Symbol",
-                                "State",
-                                "OpenTime",
-                                "Currency",
-                                "OpenPrice",
-                                "CurrentPrice",
-                                "Quantity",
-                                "Strategy",
-                                "StrategyDefinition"
-                            });
-                        positionsOpened.Add(position);
-                        logger.LogInfo($"[Quant::ProcessEntrySignal] Successfully opened position: {position}");
-                    }
-                    else
-                    {
-                        logger.LogError($"[Quant::ProcessEntrySignal] Failed to open position:\n{position}");
-                    }
-                }
-                else
-                {
-                    logger.LogInfo($"[Quant::ProcessEntrySignal] Appropriate resources not available to open position:\n {position}");
-                }
-            }
-            else
-            {
-                logger.LogInfo($"[Quant::ProcessEntrySignal] Entry conditions weren't met for symbol {symbol}");
-            }
-
-            logger.LogInfo($"[Quant::ProcessEntrySignal] Successfully processed entry signals for symbol: {symbol}");
-        }
-
-        private Position PrepareOpenPosition(string symbol, MarketData marketData)
-        {
-            var strategy = strategyProcessor.GetStrategy(symbol);
-            var position = new Position
-            {
-                PositionGuid = Guid.NewGuid(),
-                Symbol = symbol,
-                State = PositionState.Open,
-                StrategyName = strategy.Name,
-                StrategyDefinition = JsonConvert.SerializeObject(strategy),
-                CurrentPrice = marketData.LatestPrice
-            };
-            return position;
         }
     }
 }

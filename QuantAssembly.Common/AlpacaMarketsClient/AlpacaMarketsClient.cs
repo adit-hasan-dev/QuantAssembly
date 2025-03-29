@@ -1,5 +1,4 @@
 using Alpaca.Markets;
-using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.Common.Impl.AlpacaMarkets
@@ -16,9 +15,10 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
         private readonly IAlpacaOptionsDataClient optionsDataClient;
         private readonly IAlpacaTradingClient tradingClient;
         private readonly AlpacaMarketsClientConfig config;
+        private readonly SemaphoreSlim rateLimitSemaphore = new(1, 1);
         public AlpacaMarketsClient(AlpacaMarketsClientConfig config)
         {
-            try 
+            try
             {
                 this.config = config;
                 // Connect to Alpaca REST API
@@ -27,9 +27,9 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                 optionsDataClient = Environments.Paper.GetAlpacaOptionsDataClient(secretKey);
                 tradingClient = Environments.Paper.GetAlpacaTradingClient(secretKey);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new InvalidOperationException($"Configuration for {typeof(AlpacaMarketsClientConfig).Name} not found.");
+                throw;
             }
         }
 
@@ -37,27 +37,47 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
         {
             var batches = symbols.Distinct().Chunk(config.batchSize);
             List<IReadOnlyDictionary<string, T>> bars = new List<IReadOnlyDictionary<string, T>>();
+
             foreach (var batch in batches)
             {
                 var request = new LatestMarketDataListRequest(batch);
-                var result = typeof(T) switch 
+                var result = await ExecuteWithRateLimitHandlingAsync(async () =>
                 {
-                    { } when typeof(T) == typeof(IBar) => await client.ListLatestBarsAsync(request) as IReadOnlyDictionary<string, T>,
-                    { } when typeof(T) == typeof(IQuote) => await client.ListLatestQuotesAsync(request) as IReadOnlyDictionary<string, T>,
-                    _ => null
-                };
-                bars.Add(result);
+                    return typeof(T) switch
+                    {
+                        { } when typeof(T) == typeof(IBar) => await client.ListLatestBarsAsync(request) as IReadOnlyDictionary<string, T>,
+                        { } when typeof(T) == typeof(IQuote) => await client.ListLatestQuotesAsync(request) as IReadOnlyDictionary<string, T>,
+                        _ => null
+                    };
+                });
+
+                if (result != null)
+                {
+                    bars.Add(result);
+                }
             }
+
             return bars.SelectMany(x => x).ToDictionary(x => x.Key, x => x.Value);
         }
 
         public async Task<IOptionContract> GetOptionsContractDetails(string contractSymbol)
         {
-            return await tradingClient.GetOptionContractBySymbolAsync(contractSymbol);
+            return await ExecuteWithRateLimitHandlingAsync(() =>
+                tradingClient.GetOptionContractBySymbolAsync(contractSymbol));
         }
 
         public async Task<IEnumerable<T>> GetIndicatorDataAsync<T>(
             string symbol,
+            DateTime? startTime = null,
+            DateTime? endTime = null,
+            StepSize? stepSize = null)
+        {
+            var result = await GetIndicatorDataAsync<T>(new List<string> { symbol }, startTime, endTime, stepSize);
+            return result.TryGetValue(symbol, out var bars) ? bars : Enumerable.Empty<T>();
+        }
+
+        public async Task<Dictionary<string, IEnumerable<T>>> GetIndicatorDataAsync<T>(
+            List<string> symbols,
             DateTime? startTime = null,
             DateTime? endTime = null,
             StepSize? stepSize = null)
@@ -74,14 +94,39 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
 
             endTime ??= DateTime.UtcNow.AddMinutes(-16);
             startTime ??= endTime.Value.AddYears(-2); // Default look-back period of 2 years
+            try
+            {
+                var batches = symbols.Distinct().Chunk(config.batchSize);
+                var tasks = batches.Select(async batch =>
+                {
+                    var results = new Dictionary<string, IEnumerable<T>>();
+                    foreach (var symbol in batch)
+                    {
+                        var result = await ExecuteWithRateLimitHandlingAsync(async () =>
+                        {
+                            return typeof(T) switch
+                            {
+                                { } when typeof(T) == typeof(IBar) => await GetHistoricalBarsAsync(client, symbol, startTime.Value, endTime.Value, stepSize) as IEnumerable<T>,
+                                { } when typeof(T) == typeof(IQuote) => await GetHistoricalQuotesAsync(client, symbol, startTime.Value, endTime.Value) as IEnumerable<T>,
+                                _ => null
+                            };
+                        });
 
-            var result = typeof(T) switch { 
-                { } when typeof(T) == typeof(IBar) => await GetHistoricalBarsAsync(client, symbol, startTime.Value, endTime.Value, stepSize) as IEnumerable<T>, 
-                { } when typeof(T) == typeof(IQuote) => await GetHistoricalQuotesAsync(client, symbol, startTime.Value, endTime.Value) as IEnumerable<T>, 
-                _ => null 
-            };
+                        if (result != null)
+                        {
+                            results[symbol] = result;
+                        }
+                    }
+                    return results;
+                });
 
-            return result ?? throw new InvalidOperationException($"{typeof(T)} is not supported!");
+                var batchResults = await Task.WhenAll(tasks);
+                return batchResults.SelectMany(dict => dict).ToDictionary(kv => kv.Key, kv => kv.Value);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Configuration for {typeof(AlpacaMarketsClientConfig).Name} not found.");
+            }
         }
 
         public async Task<IEnumerable<IOptionSnapshot>> GetOptionsChainDataAsync(
@@ -102,7 +147,7 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             {
                 ExpirationDateGreaterThanOrEqualTo = earliestExpirationDate ?? DateOnly.FromDateTime(DateTime.UtcNow)
             };
-            var response = await optionsDataClient.GetOptionChainAsync(request);
+            var response = await ExecuteWithRateLimitHandlingAsync(async () => await optionsDataClient.GetOptionChainAsync(request));
             return response.Items.Values;
         }
 
@@ -122,7 +167,7 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                     }
                 };
 
-                IPage<IBar> barSet = await optionsDataClient.ListHistoricalBarsAsync(request);
+                IPage<IBar> barSet = await ExecuteWithRateLimitHandlingAsync(async () => await optionsDataClient.ListHistoricalBarsAsync(request));
                 allBars.AddRange(barSet.Items);
                 nextPageToken = barSet.NextPageToken;
 
@@ -157,7 +202,7 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                     }
                 };
 
-                IPage<IBar> barSet = await client.ListHistoricalBarsAsync(request);
+                IPage<IBar> barSet = await ExecuteWithRateLimitHandlingAsync(async () => await client.ListHistoricalBarsAsync(request));
                 allBars.AddRange(barSet.Items);
                 nextPageToken = barSet.NextPageToken;
 
@@ -184,7 +229,7 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                     }
                 };
 
-                IPage<IQuote> quoteSet = await client.ListHistoricalQuotesAsync(request);
+                IPage<IQuote> quoteSet = await ExecuteWithRateLimitHandlingAsync(async () => await client.ListHistoricalQuotesAsync(request));
                 allQuotes.AddRange(quoteSet.Items);
                 nextPageToken = quoteSet.NextPageToken;
 
@@ -207,5 +252,50 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             };
         }
 
+        private async Task<T> ExecuteWithRateLimitHandlingAsync<T>(Func<Task<T>> apiCall)
+        {
+            while (true)
+            {
+                try
+                {
+                    return await apiCall();
+                }
+                catch (RestClientErrorException ex) when (ex.ErrorCode == 429)
+                {
+                    await HandleRateLimitAsync();
+                }
+            }
+        }
+
+        private async Task HandleRateLimitAsync()
+        {
+            await rateLimitSemaphore.WaitAsync();
+            try
+            {
+                // Get rate limit values for all three clients
+                var dataClientRateLimit = client.GetRateLimitValues();
+                var optionsDataClientRateLimit = optionsDataClient.GetRateLimitValues();
+                var tradingClientRateLimit = tradingClient.GetRateLimitValues();
+
+                // Determine the longest wait time among the three clients
+                var resetTimes = new[]
+                {
+            dataClientRateLimit.ResetTimeUtc,
+            optionsDataClientRateLimit.ResetTimeUtc,
+            tradingClientRateLimit.ResetTimeUtc
+        };
+
+                var longestWaitTime = resetTimes.Max() - DateTime.UtcNow;
+
+                if (longestWaitTime > TimeSpan.Zero)
+                {
+                    await Task.Delay(longestWaitTime);
+                }
+            }
+            finally
+            {
+                rateLimitSemaphore.Release();
+            }
+        }
     }
 }

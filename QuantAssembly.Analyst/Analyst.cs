@@ -42,6 +42,7 @@ namespace QuantAssembly.Analyst
                 .AddStep<PreAIStep>()
                 .AddStep<LLMStep>()
                 .AddStep<PresentationStep>()
+                .AddStep<PublishStep>()
                 .Build();
 
             this.logger.LogInfo($"[{nameof(Analyst)}] Pipeline successfully built. Executing pipeline.");

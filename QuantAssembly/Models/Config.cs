@@ -1,7 +1,7 @@
 using Newtonsoft.Json.Linq;
 using QuantAssembly.Common.Config;
 
-namespace QuantAssembly
+namespace QuantAssembly.Models
 {
     public class RiskManagementConfig 
     { 

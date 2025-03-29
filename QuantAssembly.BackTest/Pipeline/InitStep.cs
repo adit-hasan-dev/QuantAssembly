@@ -1,4 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.BackTesting.Models;
+using QuantAssembly.BackTesting.Utility;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
@@ -8,44 +10,40 @@ using QuantAssembly.Ledger;
 using QuantAssembly.RiskManagement;
 using QuantAssembly.Strategy;
 
-namespace QuantAssembly
+namespace QuantAssembly.BackTesting
 {
-    /// <summary>
-    /// Responsible for setting up the initial state of the pipeline
-    /// </summary>
     [PipelineStep]
-    [PipelineStepOutput(nameof(QuantContext.openPositions))]
-    [PipelineStepOutput(nameof(QuantContext.symbolsToEvaluate))]
-    [PipelineStepOutput(nameof(QuantContext.accountData))]
-    public class InitStep : IPipelineStep<QuantContext>
+    [PipelineStepOutput(nameof(BacktestContext.openPositions))]
+    [PipelineStepOutput(nameof(BacktestContext.symbolsToEvaluate))]
+    [PipelineStepOutput(nameof(BacktestContext.accountData))]
+    public class InitStep : IPipelineStep<BacktestContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
+        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
-            var config = baseConfig as Models.Config;
-            var ledger = serviceProvider.GetService<ILedger>();
-            var logger = serviceProvider.GetService<ILogger>();
-            logger.LogInfo($"[{nameof(InitStep)}] Started init step");
+            var config = baseConfig as Config;
+            var logger = serviceProvider.GetRequiredService<ILogger>();
+            logger.LogInfo($"[{nameof(InitStep)}] Started generating exit signals");
             
-            var marketDataProvider = serviceProvider.GetService<IMarketDataProvider>();
-            var accountDataProvider = serviceProvider.GetService<IAccountDataProvider>();
-            var openPositions = ledger!.GetOpenPositions();
+            var ledger = serviceProvider.GetRequiredService<ILedger>();
+            var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
+            var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
+            var accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
+            var openPositions = ledger.GetOpenPositions();
             marketDataProvider!.FlushMarketDataCache();
             context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
+            
             var filteredPositions = new List<Position>();
-
-            // Filter out invalid positions for exit signals
             foreach (var position in openPositions)
             {
-                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, DateTime.UtcNow))
+                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, timeMachine.GetCurrentTime()))
                 {
                     filteredPositions.Add(position);
                 }
                 else
                 {
-                    logger.LogInfo($"[{nameof(InitStep)}] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
+                    logger.LogDebug($"[{nameof(InitStep)}] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
                 }
             }
-
             filteredPositions = filteredPositions.Where(position => {
                 var strategy = context.strategyProcessor!.GetStrategy(position.Symbol);
 
@@ -56,6 +54,7 @@ namespace QuantAssembly
                 }
                 return true;
             }).ToList();
+
             context.openPositions = filteredPositions;
 
             // Filter out invalid tickers for entry signals
@@ -92,5 +91,6 @@ namespace QuantAssembly
 
             logger.LogInfo($"[{nameof(InitStep)}] Successfully completed init step");
         }
+
     }
 }

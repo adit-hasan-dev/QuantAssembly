@@ -83,6 +83,7 @@ namespace QuantAssembly.Analyst
                 Context = JsonConvert.SerializeObject(tradeManagerRequest),
                 Variables = new Dictionary<string, string>{
                     { "totalCapital", "10000" },
+                    { "riskTolerance", "0.2" },
                     { "trademanager_input_schema", tradeManagerInputJsonSchema },
                     { "trademanager_input_sample", tradeManagerInputJsonSample }
                 },

@@ -41,7 +41,7 @@ namespace QuantAssembly.Analyst
             if (optionsFilterConfig.MaxBidAskSpread.HasValue)
             {
                 filteredData = filteredData.Where(c => c.AskPrice > 0 &&
-                    (c.AskPrice - c.BidPrice) / c.AskPrice <= optionsFilterConfig.MaxBidAskSpread.Value);
+                    ((c.AskPrice - c.BidPrice) / c.AskPrice) <= optionsFilterConfig.MaxBidAskSpread.Value);
             }
 
             logger.LogInfo($"[{nameof(OptionsFilterStep)}] Successfully filtered options contracts. Remaining contracts: {filteredData.Count()}");

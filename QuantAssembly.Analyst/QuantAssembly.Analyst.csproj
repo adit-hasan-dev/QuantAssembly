@@ -12,9 +12,10 @@
     <ProjectReference Include="..\QuantAssembly\QuantAssembly.csproj" />
   </ItemGroup>
   <ItemGroup>
-  <None Update="appsettings.json">
-    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  </None>
+  <None Update="QuantAssembly.Analyst/appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </None>
     <None Update="LLM/*.Prompt.md">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
@@ -24,6 +25,7 @@
 </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="33.0.1" />
+    <PackageReference Include="MailKit" Version="4.11.0" />
     <PackageReference Include="MarkDig" Version="0.40.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.40.0" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.40.0" />

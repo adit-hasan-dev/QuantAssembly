@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Models;

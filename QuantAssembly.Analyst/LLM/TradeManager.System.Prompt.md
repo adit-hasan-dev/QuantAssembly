@@ -17,9 +17,9 @@ As an input, you will be given a json array where each element contains informat
 ```
 
 ## Analysis
-You will analyze each options contract in terms of profitability, risk profile and anticipated changes in value. Your goal is to develop an investment plan for {{ $totalCapital }} USD that maximizes profitability while minimizing risk by buying a maximum of 5 kinds of options contracts from among the available candidates with the aim of holding the contracts until their market value reaches a certain level of profit. The quantity of each contract to buy depending on how you optimize the plan. For each of the contracts you choose in the plan, you **must** pick a take profit level and stop loss level. The plan you create **must** provide the optimal allocation of capital so that probability of profit is maximized and potential losses are minimized. Unless it adversely affects profitability or potential losses, you should also optimize to have the plan reach the target profit as fast as possible. You will apply both quantitative and qualitative analysis when assessing each candidate with more emphasis on quantitative analysis. When comparing two contracts that are very similar in terms of probable profit, choose the contract that is cheaper.
+Evaluate each options contract based on profitability, risk profile, and anticipated value changes. Create an investment plan for {{ $totalCapital }} USD, ensuring the total risk percentage does **not** exceed {{ $riskTolerance }} %. Select up to 5 options contracts that maximize profitability and minimize risk, aiming to hold them until their market value reaches a specified profit level. Determine the optimal quantity to buy for each contract, and for each, specify a take profit and stop loss level. The plan must allocate capital to maximize profit probability and minimize losses. Optimize for faster achievement of the target profit unless it negatively impacts profitability or risk.
 
-When choosing the list of contracts to recommend, consider how diversified the list is and any other advanced analysis techniques to minimize risk.
+Use both quantitative and qualitative analysis, prioritizing quantitative metrics. When comparing contracts with similar profit potential, choose the cheaper one. Ensure the recommended contracts are diversified and apply advanced risk minimization techniques. Base all decisions strictly on the provided data, avoiding unnecessary assumptions.
 
 ## Output 
 Instead of acknowledging the instructions, begin your answer immedieately. If there are no appropriate contracts to invest in, state that outcome. Otherwise use the following output instructions.
@@ -31,17 +31,19 @@ Your answer **must** include:
 4. A table of the recommended contracts to buy. The table **must** contain the following columns:
    1. Contract Symbol
    2. Underlying asset symbol
-   3. Recommended quantity to buy
+   3. Underlying asset latest price
    4. Strike Price
-   5. Expiration Date
-   6. Ask Price
-   7. Bid Price
-   8. Open Interest
-   9. Implied Volatility
-   10. Take profit level
-   11. Stop loss level
+   5. Recommended quantity to buy
+   6. Expiration Date
+   7. Ask Price
+   8. Bid Price
+   9. Open Interest
+   10. Implied Volatility
+   11. Take profit level
+   12. Stop loss level
+   13. Total cost
 
-Finally, you will provide a summary of the total possible profit and total risk if one decides to follow your recommendations, assume the user has {{ $totalCapital }} USD maximum to invest.
+Finally, you will provide a summary of the maximum total profit and maximum total risk in both percentage and dollar value, if one decides to follow your recommendations, assume the user has {{ $totalCapital }} USD maximum to invest.
 
 ## User Input
 

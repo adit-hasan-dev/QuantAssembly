@@ -16,6 +16,7 @@ using QuantAssembly.RiskManagement;
 using QuantAssembly.Strategy;
 using QuantAssembly.TradeManager;
 using QuantAssembly.Utility;
+using QuantAssembly.Common.Pipeline;
 
 namespace QuantAssembly.BackTesting
 {
@@ -29,35 +30,36 @@ namespace QuantAssembly.BackTesting
         private ServiceProvider serviceProvider;
         private TimePeriod timePeriod;
         private StepSize stepSize;
-        private Config config;
+        private Models.Config config;
         private ILogger logger;
-        private IStrategyProcessor strategyProcessor;
-        private IMarketDataProvider marketDataProvider;
-        private IIndicatorDataProvider IndicatorDataProvider;
-        private IRiskManager riskManager;
-        private IAccountDataProvider accountDataProvider;
-        private ITradeManager tradeManager;
 
         private BacktestConfig backtestConfig;
-        private BackTestSummary backtestSummary = new();
 
         public BackTestEngine(TimePeriod timePeriod, StepSize stepSize)
         {
-            this.timePeriod = timePeriod;
-            this.stepSize = stepSize;
+            this.config = ConfigurationLoader.LoadConfiguration<Models.Config>();
 
-            Initialize();
+            InitializeDependencies();
             logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.LogInfo("Initializing BacktestEngine...");
-            // Load all strategies
+            logger.LogInfo("Successfully initialized BackTestEngine.");
+        }
 
-            logger.LogInfo($"[BacktestEngine] Loading all strategies.");
-            this.strategyProcessor = new StrategyProcessor(logger);
-            foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
+        public async Task Run()
+        {
+            var pipeline = new PipelineBuilder<BacktestContext>(this.serviceProvider, this.config)
+                .AddStep<InitStep>()
+                .AddStep<GenerateExitSignalsStep>()
+                .Build();
+            InitializeStrategies(pipeline.GetContext());
+            
+            logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {this.stepSize} and time period: {this.timePeriod}");
+            var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
+            // TODO: init summary
+            while (timeMachine.GetCurrentTime() < timeMachine.endTime)
             {
                 try
                 {
-                    this.strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                    await pipeline.Execute();
                 }
                 catch (Exception ex)
                 {
@@ -65,48 +67,12 @@ namespace QuantAssembly.BackTesting
                 }
             }
 
-            this.accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
-            this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
-            this.IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
-            this.riskManager = new PercentageAccountValueRiskManager(serviceProvider);
-            this.tradeManager = serviceProvider.GetRequiredService<ITradeManager>();
-            logger.LogInfo("Successfully initialized BackTestEngine.");
-        }
-
-        public async Task Run()
-        {
-            logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {this.stepSize} and time period: {this.timePeriod}");
-            var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
-            var ledger = serviceProvider.GetRequiredService<ILedger>();
-            backtestSummary.InitialPortfolioValue = (await this.accountDataProvider.GetAccountDataAsync(config.AccountId)).TotalPortfolioValue;
-            while (timeMachine.GetCurrentTime() < timeMachine.endTime)
-            {
-                await ProcessSignals(ledger, timeMachine, this.accountDataProvider);
-                timeMachine.StepForward();
-            }
-            backtestSummary.FinalPortfolioValue = (await this.accountDataProvider.GetAccountDataAsync(config.AccountId)).TotalPortfolioValue;
-
             logger.LogInfo($"[BackTestEngine::Run] Completed backtesting period");
-            logger.LogInfo(this.backtestSummary.ToString());
+            logger.LogInfo(pipeline.GetContext().backtestSummary.ToString());
         }
 
         private async Task ProcessSignals(ILedger ledger, TimeMachine timeMachine, IAccountDataProvider accountDataProvider)
         {
-            logger.LogDebug($"[BacktestEngine::ProcessSignals] Processing Signals for time: {timeMachine.GetCurrentTime()}");
-            var openPositions = ledger.GetOpenPositions();
-            var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-            var filteredPositions = new List<Position>();
-            foreach (var position in openPositions)
-            {
-                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, timeMachine.GetCurrentTime()))
-                {
-                    filteredPositions.Add(position);
-                }
-                else
-                {
-                    logger.LogDebug($"[BackTestEngine::ProcessSignals] Not processing exit signals for symbol: {position.Symbol} since it is outside its trading hours");
-                }
-            }
 
             // Process exit signals for all open positions
             foreach (var position in filteredPositions)
@@ -310,9 +276,8 @@ namespace QuantAssembly.BackTesting
             }
         }
 
-        private void Initialize()
+        private void InitializeDependencies()
         {
-            config = ConfigurationLoader.LoadConfiguration<Config>();
             var services = new ServiceCollection();
             serviceProvider = services
             .AddSingleton<ILogger, Logger>(provider =>
@@ -322,7 +287,7 @@ namespace QuantAssembly.BackTesting
             .AddSingleton<ILedger, Ledger.Ledger>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
-                return new Ledger.Ledger(config, logger);
+                return new Ledger.Ledger(this.config.LedgerFilePath, logger);
             })
             .AddSingleton<AlpacaMarketsClient>(provider =>
             {
@@ -378,6 +343,23 @@ namespace QuantAssembly.BackTesting
                 return new BacktestTradeManager(ledger, logger,accountDataProvider, timeMachine, config.AccountId);
             })
             .BuildServiceProvider();
+        }
+
+        private void InitializeStrategies(BacktestContext context)
+        {
+            logger.LogInfo($"[{nameof(BackTestEngine)}] Loading all strategies.");
+            context.strategyProcessor = new StrategyProcessor(logger);
+            foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
+            {
+                try
+                {
+                    this.strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex);
+                }
+            }
         }
     }
 }

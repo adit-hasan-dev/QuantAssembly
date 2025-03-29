@@ -33,6 +33,13 @@ namespace QuantAssembly.Analyst.Models
         public double? MaxBidAskSpread { get; set; }
     }
 
+    public class EmailPublishConfig
+    {
+        public string EmailAddress { get; set; }
+        public string AppPassword { get; set; }
+        public string SmtpServer { get; set; }
+        public int SmtpPort { get; set; }
+    }
 
     public class Config : BaseConfig
     {
@@ -41,5 +48,6 @@ namespace QuantAssembly.Analyst.Models
         public IndicatorFilterConfig indicatorFilterConfig { get; set; }
         public OptionsContractFilterConfig optionsContractFilterConfig { get; set; }
         public string OutputFilePath { get; set; }
+        public EmailPublishConfig emailPublishConfig { get; set; }
     }
 }
