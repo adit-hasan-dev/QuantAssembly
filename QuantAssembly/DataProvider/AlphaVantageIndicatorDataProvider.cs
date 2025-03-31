@@ -1,8 +1,7 @@
-using System;
-using System.Threading.Tasks;
 using QuantAssembly.Impl.AlphaVantage;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.DataProvider;
 
 namespace QuantAssembly.DataProvider
 {

@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace QuantAssembly.Strategy
+namespace QuantAssembly.Core.Strategy
 {
     public enum StrategyProperty
     {

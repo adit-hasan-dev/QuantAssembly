@@ -1,5 +1,4 @@
 using QuantAssembly.BackTesting.DataProvider;
-using QuantAssembly.BackTesting.Utility;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Models;
@@ -7,6 +6,10 @@ using QuantAssembly.Common.Models;
 using QuantAssembly.TradeManager;
 using QuantAssembly.Utility;
 using QuantAssembly.Common.Constants;
+using QuantAssembly.Common;
+using QuantAssembly.Common.Ledger;
+using QuantAssembly.Core.Models;
+using QuantAssembly.Core.TradeManager;
 
 namespace QuantAssembly.BackTesting.TradeManager
 {

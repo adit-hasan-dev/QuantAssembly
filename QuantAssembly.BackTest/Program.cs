@@ -1,5 +1,4 @@
-﻿using QuantAssembly.BackTesting.Utility;
-using QuantAssembly.Common.Constants;
+﻿using QuantAssembly.Common.Constants;
 
 namespace QuantAssembly.BackTesting
 {
@@ -7,9 +6,7 @@ namespace QuantAssembly.BackTesting
     {
         public static async Task Main(string[] args)
         {
-            var timePeriod = TimePeriod.OneYear;
-            var stepSize = StepSize.OneHour;
-            var backTestEngine = new BackTestEngine(timePeriod, stepSize);
+            var backTestEngine = new BackTestEngine();
             await backTestEngine.Run();
         }
     }

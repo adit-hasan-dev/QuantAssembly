@@ -1,12 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Common.Config;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
 using Validator = QuantAssembly.Utility.Validator;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Constants;
+using QuantAssembly.Core.TradeManager;
+using QuantAssembly.Core.Models;
+using QuantAssembly.Common.Ledger;
 
 namespace QuantAssembly.TradeManager
 {

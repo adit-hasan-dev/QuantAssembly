@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.RiskManagement
@@ -11,8 +12,8 @@ namespace QuantAssembly.RiskManagement
 
     public class PercentageAccountValueRiskManager : BaseRiskManager<PercentageAccountValueRiskManagerConfig>
     {
-        public PercentageAccountValueRiskManager(IServiceProvider serviceProvider, Config config)
-            : base(serviceProvider, config)
+        public PercentageAccountValueRiskManager(IServiceProvider serviceProvider, RiskManagementConfig riskManagementConfig, PercentageAccountValueRiskManagerConfig config)
+            : base(serviceProvider, riskManagementConfig, config)
         {
         }
 

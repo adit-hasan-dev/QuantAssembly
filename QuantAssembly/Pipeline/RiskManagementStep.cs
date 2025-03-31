@@ -1,13 +1,10 @@
-using System.Reflection.Metadata;
-using Alpaca.Markets;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using Polly;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
-using QuantAssembly.Models;
+using QuantAssembly.Core.Models;
 using QuantAssembly.RiskManagement;
 
 namespace QuantAssembly

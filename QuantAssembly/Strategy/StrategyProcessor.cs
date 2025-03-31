@@ -4,6 +4,8 @@ namespace QuantAssembly.Strategy
     using Newtonsoft.Json;
     using QuantAssembly.Common.Logging;
     using QuantAssembly.Common.Models;
+    using QuantAssembly.Core.Models;
+    using QuantAssembly.Core.Strategy;
     using QuantAssembly.Models;
     public class StrategyProcessor : IStrategyProcessor
     {

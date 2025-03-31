@@ -1,7 +1,7 @@
-namespace QuantAssembly.Ledger
+using QuantAssembly.Common.Models;
+
+namespace QuantAssembly.Common.Ledger
 {
-    using QuantAssembly.Common.Models;
-    
     public interface ILedger
     {
         void AddOpenPosition(Position position);

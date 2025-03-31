@@ -1,4 +1,4 @@
-namespace QuantAssembly.TradeManager
+namespace QuantAssembly.Core.TradeManager
 {
     using Models;
     using QuantAssembly.Common.Models;

@@ -1,7 +1,8 @@
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
+using QuantAssembly.Core.Models;
+using QuantAssembly.Core.Strategy;
 using QuantAssembly.Models;
-using QuantAssembly.Strategy;
 
 namespace QuantAssembly
 {

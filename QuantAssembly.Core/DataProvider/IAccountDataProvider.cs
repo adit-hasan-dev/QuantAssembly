@@ -1,6 +1,6 @@
 using QuantAssembly.Models;
 
-namespace QuantAssembly.DataProvider
+namespace QuantAssembly.Core.DataProvider
 {
     public interface IAccountDataProvider
     {

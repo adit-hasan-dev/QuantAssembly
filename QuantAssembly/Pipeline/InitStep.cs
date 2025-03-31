@@ -1,12 +1,14 @@
 using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.Common;
 using QuantAssembly.Common.Config;
+using QuantAssembly.Common.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
+using QuantAssembly.Core.DataProvider;
+using QuantAssembly.Core.Strategy;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Ledger;
 using QuantAssembly.RiskManagement;
-using QuantAssembly.Strategy;
 
 namespace QuantAssembly
 {
@@ -28,6 +30,7 @@ namespace QuantAssembly
             
             var marketDataProvider = serviceProvider.GetService<IMarketDataProvider>();
             var accountDataProvider = serviceProvider.GetService<IAccountDataProvider>();
+            var timeProvider = serviceProvider.GetService<ITimeProvider>();
             var openPositions = ledger!.GetOpenPositions();
             marketDataProvider!.FlushMarketDataCache();
             context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
@@ -36,7 +39,7 @@ namespace QuantAssembly
             // Filter out invalid positions for exit signals
             foreach (var position in openPositions)
             {
-                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, DateTime.UtcNow))
+                if (await timeProvider.IsWithinTradingHoursAsync())
                 {
                     filteredPositions.Add(position);
                 }
@@ -69,7 +72,7 @@ namespace QuantAssembly
 
             foreach (var symbol in config.TickerStrategyMap.Keys)
             {
-                if (await marketDataProvider.IsWithinTradingHours(symbol, DateTime.UtcNow))
+                if (await timeProvider.IsWithinTradingHoursAsync())
                 {
                     context.symbolsToEvaluate.Add(symbol);
                 }

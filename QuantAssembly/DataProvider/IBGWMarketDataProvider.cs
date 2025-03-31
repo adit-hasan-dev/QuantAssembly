@@ -45,51 +45,5 @@ namespace QuantAssembly.DataProvider
 
             return marketDataFresh;
         }
-
-        public async Task<bool> IsWithinTradingHours(string ticker, DateTime? dateTime)
-        {
-            var tradingHours = await CacheWrapper.WithCacheAsync(ticker, async () =>
-            {
-                var contractDetails = await ibgwClient.GetSymbolContractDetailsAsync(ticker);
-                var tradingHours = ParseTradingHours(contractDetails.TradingHours, contractDetails.TimeZoneId);
-                return tradingHours;
-            }, TimeSpan.FromHours(12)); // Optional TTL of 1 day (adjust as needed)
-
-            // Get the current time in UTC 
-            var currentTime = dateTime ?? DateTime.UtcNow;
-            // Check if the current time is within the trading hours 
-            return tradingHours.Any(th => currentTime >= th.Start && currentTime <= th.End);
-        }
-
-        private List<TradingHoursCache> ParseTradingHours(string tradingHoursString, string timeZoneId)
-        {
-            var timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-            var tradingHours = new List<TradingHoursCache>();
-
-            var daySegments = tradingHoursString.Split(";").Where(day => !day.Contains("CLOSED", StringComparison.InvariantCultureIgnoreCase)).ToList();
-
-            return daySegments.Select(day => {
-                var parts = day.Split("-");
-                var format = "yyyyMMdd:HHmm";
-                var startDayString = parts[0];
-                var endDayString = parts[1];
-                var startDateTime = DateTime.ParseExact(startDayString, format, null);
-                var endDateTime = DateTime.ParseExact(endDayString, format, null);
-
-                return new TradingHoursCache
-                {
-                    Start = TimeZoneInfo.ConvertTimeToUtc(startDateTime, timeZone),
-                    End = TimeZoneInfo.ConvertTimeToUtc(endDateTime, timeZone),
-                    Expiration = TimeZoneInfo.ConvertTimeToUtc(endDateTime, timeZone),
-                };
-            }).ToList();
-        }
-
-        private class TradingHoursCache
-        {
-            public DateTime Start { get; set; }
-            public DateTime End { get; set; }
-            public DateTime Expiration { get; set; }
-        }
     }
 }

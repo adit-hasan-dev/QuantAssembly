@@ -1,6 +1,7 @@
+
 using QuantAssembly.Common.Models;
 
-namespace QuantAssembly.DataProvider
+namespace QuantAssembly.Core.DataProvider
 {
     // TODO: Move to QuantAssembly.Common
     public interface IIndicatorDataProvider

@@ -1,14 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.BackTesting.Models;
-using QuantAssembly.BackTesting.Utility;
+using QuantAssembly.Common;
 using QuantAssembly.Common.Config;
+using QuantAssembly.Common.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
+using QuantAssembly.Core.DataProvider;
+using QuantAssembly.Core.Strategy;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Ledger;
 using QuantAssembly.RiskManagement;
-using QuantAssembly.Strategy;
 
 namespace QuantAssembly.BackTesting
 {
@@ -25,7 +26,7 @@ namespace QuantAssembly.BackTesting
             logger.LogInfo($"[{nameof(InitStep)}] Started generating exit signals");
             
             var ledger = serviceProvider.GetRequiredService<ILedger>();
-            var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
+            var timeProvider = serviceProvider.GetRequiredService<ITimeProvider>();
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             var accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
             var openPositions = ledger.GetOpenPositions();
@@ -35,7 +36,7 @@ namespace QuantAssembly.BackTesting
             var filteredPositions = new List<Position>();
             foreach (var position in openPositions)
             {
-                if (await marketDataProvider.IsWithinTradingHours(position.Symbol, timeMachine.GetCurrentTime()))
+                if (await timeProvider.IsWithinTradingHoursAsync())
                 {
                     filteredPositions.Add(position);
                 }
@@ -68,7 +69,7 @@ namespace QuantAssembly.BackTesting
 
             foreach (var symbol in config.TickerStrategyMap.Keys)
             {
-                if (await marketDataProvider.IsWithinTradingHours(symbol, DateTime.UtcNow))
+                if (await timeProvider.IsWithinTradingHoursAsync())
                 {
                     context.symbolsToEvaluate.Add(symbol);
                 }

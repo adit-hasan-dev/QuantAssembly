@@ -1,7 +1,6 @@
-using System;
 using QuantAssembly.Common.Models;
 
-namespace QuantAssembly.Models
+namespace QuantAssembly.Core.Models
 {
     public enum SignalType
     {

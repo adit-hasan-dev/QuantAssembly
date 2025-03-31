@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\client\CSharpAPI.csproj" />
     <ProjectReference Include="..\QuantAssembly.Common\QuantAssembly.Common.csproj" />
+    <ProjectReference Include="..\QuantAssembly.Core\QuantAssembly.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
   <None Update="appsettings.json">

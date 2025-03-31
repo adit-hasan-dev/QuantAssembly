@@ -176,6 +176,11 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
             return allBars;
         }
 
+        public async Task<IClock> GetMarketClockInfoAsync()
+        {
+            return await ExecuteWithRateLimitHandlingAsync(async () => await tradingClient.GetClockAsync());
+        }
+
         private async Task<IEnumerable<IBar>> GetHistoricalBarsAsync(
             IAlpacaDataClient client,
             string symbol,

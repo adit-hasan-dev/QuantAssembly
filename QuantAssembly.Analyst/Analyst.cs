@@ -13,6 +13,7 @@ using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
+using QuantAssembly.Core.DataProvider;
 using QuantAssembly.DataProvider;
 
 namespace QuantAssembly.Analyst

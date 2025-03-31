@@ -3,6 +3,7 @@ using QuantAssembly.Common.Logging;
 using Skender.Stock.Indicators;
 using Alpaca.Markets;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.DataProvider;
 
 namespace QuantAssembly.DataProvider
 {

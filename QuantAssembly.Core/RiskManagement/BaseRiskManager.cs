@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.RiskManagement
@@ -13,22 +14,13 @@ namespace QuantAssembly.RiskManagement
         protected readonly double maxDrawDownPercentage;
         protected readonly TConfig customConfig;
 
-        public BaseRiskManager(IServiceProvider serviceProvider, Config config)
+        public BaseRiskManager(IServiceProvider serviceProvider, RiskManagementConfig riskManagementConfig, TConfig customConfig)
         {
             logger = serviceProvider.GetRequiredService<ILogger>();
-            globalStopLoss = config.RiskManagement.GlobalStopLoss;
-            maxDrawDownPercentage = config.RiskManagement.MaxDrawDownPercentage;
+            globalStopLoss = riskManagementConfig.GlobalStopLoss;
+            maxDrawDownPercentage = riskManagementConfig.MaxDrawDownPercentage;
 
-            // Load the specific configuration
-            var customProperties = config.CustomProperties;
-            if (customProperties.TryGetValue(typeof(TConfig).Name, out var configObject))
-            {
-                customConfig = configObject.ToObject<TConfig>();
-            }
-            else
-            {
-                throw new InvalidOperationException($"Configuration for {typeof(TConfig).Name} not found.");
-            }
+            this.customConfig = customConfig;
         }
 
         ///<inheritdoc/>

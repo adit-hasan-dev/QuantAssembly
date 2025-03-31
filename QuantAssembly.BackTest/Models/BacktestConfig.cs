@@ -10,6 +10,7 @@ namespace QuantAssembly.BackTesting.Models
         public string LogFilePath { get; } 
         public string LedgerFilePath { get; } 
         public Dictionary<string, string> TickerStrategyMap { get; } 
+        public string CacheFolderPath { get; }
         // These should be parsed from config
         public TimePeriod timePeriod { get; init; } = TimePeriod.OneYear;
         public StepSize stepSize { get; init; } = StepSize.OneHour;

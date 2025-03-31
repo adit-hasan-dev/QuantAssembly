@@ -3,13 +3,15 @@ using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.IBGW;
-using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Strategy;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.RiskManagement;
 using QuantAssembly.Models;
 using Newtonsoft.Json;
+using QuantAssembly.Common.Ledger;
+using QuantAssembly.Core.Strategy;
+using QuantAssembly.Core.DataProvider;
 
 namespace QuantAssembly
 {
@@ -70,7 +72,7 @@ namespace QuantAssembly
 
         public void Terminate()
         {
-            logger.LogInfo($"[ReQuant] Signal to terminate application received. Gracefully shutting down after completing current iteration.");
+            logger.LogInfo($"[Quant] Signal to terminate application received. Gracefully shutting down after completing current iteration.");
             shouldTerminate = true;
         }
 
@@ -125,7 +127,15 @@ namespace QuantAssembly
             .AddSingleton<IRiskManager, PercentageAccountValueRiskManager>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
-                return new PercentageAccountValueRiskManager(provider, this.config);
+                if (this.config.CustomProperties.TryGetValue(nameof(PercentageAccountValueRiskManagerConfig), out var riskManagerConfigJson))
+                {
+                    var percentageRiskManagerConfig = JsonConvert.DeserializeObject<PercentageAccountValueRiskManagerConfig>(riskManagerConfigJson.ToString());
+                    return new PercentageAccountValueRiskManager(provider, this.config.RiskManagement, percentageRiskManagerConfig);
+                }
+                else
+                {
+                    throw new Exception("PercentageAccountValueRiskManagerConfig not found in config");
+                }
             })
             .BuildServiceProvider();
         }

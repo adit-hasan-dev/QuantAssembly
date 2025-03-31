@@ -1,22 +1,22 @@
 using System.Collections.Concurrent;
 using Alpaca.Markets;
-using QuantAssembly.BackTesting.Utility;
+using QuantAssembly.Common;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Instrumentation;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.DataProvider;
 using QuantAssembly.DataProvider;
-using QuantAssembly.Models;
 using Skender.Stock.Indicators;
-using IQuote = Alpaca.Markets.IQuote;
 
 namespace QuantAssembly.BackTesting.DataProvider
 {
     public class BacktestMarketDataProvider : IIndicatorDataProvider, IMarketDataProvider
     {
         private readonly TimeMachine timeMachine;
+        private readonly ITimeProvider timeProvider;
         private readonly Dictionary<string, List<IBar>> historicalDataCache = new();
         private readonly Dictionary<string, MarketData> marketDataCache = new();
         private readonly Dictionary<string, IList<TimestampedIndicatorData>> historicalIndicatorDataCache = new();
@@ -35,6 +35,7 @@ namespace QuantAssembly.BackTesting.DataProvider
 
         public BacktestMarketDataProvider(
             TimeMachine timeMachine,
+            ITimeProvider timeProvider,
             AlpacaMarketsClient alpacaClient,
             ILogger logger,
             string cacheFolderPath,
@@ -45,6 +46,7 @@ namespace QuantAssembly.BackTesting.DataProvider
             this.tickers = tickers;
             this.logger = logger;
             this.cacheFolderPath = cacheFolderPath;
+            this.timeProvider = timeProvider;
         }
 
         public async Task<IndicatorData> GetIndicatorDataAsync(string ticker)
@@ -83,14 +85,6 @@ namespace QuantAssembly.BackTesting.DataProvider
             }
 
             return marketData;
-        }
-
-
-        public Task<bool> IsWithinTradingHours(string symbol, DateTime? dateTime)
-        {
-            dateTime ??= timeMachine.GetCurrentTime();
-            var status = DateHelper.GetLocalMarketStatus(dateTime.Value);
-            return Task.FromResult(status == DateHelper.MarketStatus.Open);
         }
 
         public void FlushMarketDataCache()
@@ -163,7 +157,7 @@ namespace QuantAssembly.BackTesting.DataProvider
             while (timeMachine.GetCurrentTime() < timeMachine.endTime)
             {
                 var currentTime = timeMachine.GetCurrentTime();
-                if (currentTime > lastComputedTime && await IsWithinTradingHours(ticker, currentTime))
+                if (currentTime > lastComputedTime && await timeProvider.IsWithinTradingHoursAsync())
                 {
                     await semaphore.WaitAsync();
                     tasks.Add(Task.Run(async () =>

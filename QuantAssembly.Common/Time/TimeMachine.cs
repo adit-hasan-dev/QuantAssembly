@@ -1,6 +1,6 @@
 using QuantAssembly.Common.Constants;
 
-namespace QuantAssembly.BackTesting.Utility
+namespace QuantAssembly.Common
 {
     public class TimeMachine
     {

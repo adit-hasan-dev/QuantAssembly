@@ -1,4 +1,4 @@
-namespace QuantAssembly.BackTesting.Utility
+namespace QuantAssembly.Common
 {
     using System;
     using System.Collections.Generic;

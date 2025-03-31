@@ -1,11 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Pipeline;
-using QuantAssembly.TradeManager;
 using QuantAssembly.Models;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Config;
+using QuantAssembly.Core.TradeManager;
+using QuantAssembly.Core.DataProvider;
+using QuantAssembly.Core.Models;
 
 namespace QuantAssembly
 {

@@ -1,7 +1,8 @@
 using QuantAssembly.Common.Models;
+using QuantAssembly.Core.Models;
 using QuantAssembly.Models;
 
-namespace QuantAssembly.Strategy
+namespace QuantAssembly.Core.Strategy
 {
     public interface IStrategyProcessor
     {

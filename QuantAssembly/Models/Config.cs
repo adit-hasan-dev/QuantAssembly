@@ -1,14 +1,9 @@
 using Newtonsoft.Json.Linq;
 using QuantAssembly.Common.Config;
+using QuantAssembly.Core.Models;
 
 namespace QuantAssembly.Models
 {
-    public class RiskManagementConfig 
-    { 
-        public double MaxDrawDownPercentage { get; set; } 
-        public double GlobalStopLoss { get; set; } 
-    }
-
     public class Config : BaseConfig
     { 
         public string AccountId { get; } 

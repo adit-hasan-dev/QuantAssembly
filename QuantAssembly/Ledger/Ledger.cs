@@ -1,6 +1,7 @@
 namespace QuantAssembly.Ledger
 {
     using Newtonsoft.Json;
+    using QuantAssembly.Common.Ledger;
     using QuantAssembly.Common.Logging;
     using QuantAssembly.Common.Models;
     using QuantAssembly.Models;
