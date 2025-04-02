@@ -6,20 +6,15 @@ using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
-using QuantAssembly.Ledger;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common.Models;
-using QuantAssembly.RiskManagement;
-using QuantAssembly.Strategy;
-using QuantAssembly.TradeManager;
-using QuantAssembly.Utility;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Common;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.TradeManager;
 using QuantAssembly.Common.Ledger;
+using QuantAssembly.Core;
 
 namespace QuantAssembly.BackTesting
 {
@@ -28,30 +23,26 @@ namespace QuantAssembly.BackTesting
         public double InitialPortfolioValue { get; set; }
 
     }
-    public class BackTestEngine
+    public class BackTestEngine : TradingEngine<Config>
     {
         private ServiceProvider serviceProvider;
         private TimePeriod timePeriod;
         private StepSize stepSize;
-        private Models.Config config;
+        private Config config;
         private ILogger logger;
 
         private BacktestConfig backtestConfig;
 
-        public BackTestEngine()
-        {
-            this.config = ConfigurationLoader.LoadConfiguration<Models.Config>();
-
-            InitializeDependencies();
-            logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.LogInfo("Successfully initialized BackTestEngine.");
-        }
-
-        public async Task Run()
+        public override async Task Run()
         {
             var pipeline = new PipelineBuilder<BacktestContext>(this.serviceProvider, this.config)
                 .AddStep<InitStep>()
                 .AddStep<GenerateExitSignalsStep>()
+                .AddStep<GenerateEntrySignalsStep>()
+                .AddStep<ClosePositionsStep>()
+                .AddStep<RiskManagementStep>()
+                .AddStep<OpenPositionsStep>()
+                .AddStep<UpdateSummaryStep>()
                 .Build();
             
             logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {this.stepSize} and time period: {this.timePeriod}");
@@ -73,134 +64,10 @@ namespace QuantAssembly.BackTesting
             logger.LogInfo(pipeline.GetContext().backtestSummary.ToString());
         }
 
-        private async Task ProcessExitSignal(Position position, MarketData marketData, IndicatorData histData)
+        protected override void InitializeDependencies(ServiceCollection services)
         {
-        //     logger.LogDebug($"[BacktestEngine::ProcessExitSignal] Processing exit signals for {position.Symbol}");
-
-        //     // Update current price according to latest market data for position
-        //     position.CurrentPrice = marketData.LatestPrice;
-        //     var exitSignal = strategyProcessor.EvaluateCloseSignal(marketData, histData, position);
-        //     if (exitSignal != SignalType.None)
-        //     {
-        //         logger.LogInfo($"[BacktestEngine::ProcessExitSignal] Exit conditions met for position: {position}, signalType: {exitSignal}");
-        //         UpdateBacktestReport(exitSignal, position.StrategyName);
-        //         // For now, we don't engage the risk manager to close positions
-        //         // We just sell off the entire position
-        //         // TODO: Hard-coding in the order type as a market sell, need to support others
-        //         var result = await tradeManager.ClosePositionAsync(position, OrderType.Market);
-        //         // TODO: Handle unsuccessful transactions
-        //         if (result.TransactionState == TransactionState.Completed)
-        //         {
-        //             Validator.AssertPropertiesNonNull(
-        //             position,
-        //             new List<string>{
-        //                 "PositionGuid",
-        //                 "Symbol",
-        //                 "OpenTime",
-        //                 "CloseTime",
-        //                 "Currency",
-        //                 "OpenPrice",
-        //                 "ClosePrice",
-        //                 "CurrentPrice",
-        //                 "Quantity",
-        //                 "ProfitOrLoss",
-        //                 "StrategyName",
-        //                 "StrategyDefinition"
-        //             });
-        //         }
-        //         else
-        //         {
-        //             logger.LogInfo($"[BacktestEngine::ProcessExitSignal] Failed to close position: {position}");
-        //         }
-        //     }
-        //     else
-        //     {
-        //         logger.LogDebug($"[BacktestEngine::ProcessExitSignal] Exit conditions weren't met for position: {position}");
-        //     }
-
-        //     logger.LogDebug($"[BacktestEngine::ProcessExitSignal] Successfully processed exit signals for position: {position}");
-        // 
-        }
-
-        // private async Task ProcessEntrySignal(string symbol, IList<Position> positionsOpened, MarketData marketData, IndicatorData histData)
-        // {
-        //     logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Processing Entry Signals for {symbol}");
-        //     var accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
-        //     var openSignal = strategyProcessor.EvaluateOpenSignal(marketData, accountData, histData, symbol);
-        //     if (openSignal != SignalType.None)
-        //     {
-        //         logger.LogInfo($"[BacktestEngine::ProcessEntrySignal] Entry conditions met for symbol: {symbol}");
-        //         var position = PrepareOpenPosition(symbol, marketData);
-        //         UpdateBacktestReport(openSignal, position.StrategyName);
-        //         if (riskManager.ComputePositionSize(marketData, histData, accountData, position))
-        //         {
-        //             // TODO: Current only using market buys. Need to support other types like limit buys
-        //             var result = await tradeManager.OpenPositionAsync(position, OrderType.Market);
-        //             if (result.TransactionState == TransactionState.Completed)
-        //             {
-        //                 Validator.AssertPropertiesNonNull(
-        //                     position,
-        //                     new List<string>{
-        //                         "PositionGuid",
-        //                         "Symbol",
-        //                         "State",
-        //                         "OpenTime",
-        //                         "Currency",
-        //                         "OpenPrice",
-        //                         "CurrentPrice",
-        //                         "Quantity",
-        //                         "StrategyName",
-        //                         "StrategyDefinition"
-        //                     });
-        //                 positionsOpened.Add(position);
-        //                 logger.LogInfo($"[BacktestEngine::ProcessEntrySignal] Successfully opened position: {position}");
-        //             }
-        //             else
-        //             {
-        //                 logger.LogError($"[BacktestEngine::ProcessEntrySignal] Failed to open position:\n{position}");
-        //             }
-        //         }
-        //         else
-        //         {
-        //             logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Appropriate resources not available to open position:\n {position}");
-        //         }
-        //     }
-        //     else
-        //     {
-        //         logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Entry conditions weren't met for symbol {symbol}");
-        //     }
-
-        //     logger.LogDebug($"[BacktestEngine::ProcessEntrySignal] Successfully processed entry signals for symbol: {symbol}");
-        // }
-
-        // private Position PrepareOpenPosition(string symbol, MarketData marketData)
-        // {
-        //     var strategy = strategyProcessor.GetStrategy(symbol);
-        //     var position = new Position
-        //     {
-        //         PositionGuid = Guid.NewGuid(),
-        //         Symbol = symbol,
-        //         State = PositionState.Open,
-        //         StrategyName = strategy.Name,
-        //         StrategyDefinition = JsonConvert.SerializeObject(strategy),
-        //         CurrentPrice = marketData.LatestPrice
-        //     };
-        //     return position;
-        // }
-
-        private void InitializeDependencies()
-        {
-            var services = new ServiceCollection();
-            serviceProvider = services
-            .AddSingleton<ILogger, Logger>(provider =>
-            {
-                return new Logger(config, isDevEnv: false);
-            })
-            .AddSingleton<ILedger, Ledger.Ledger>(provider =>
-            {
-                var logger = provider.GetRequiredService<ILogger>();
-                return new Ledger.Ledger(this.config.LedgerFilePath, logger);
-            })
+            this.logger.LogInfo($"[{nameof(BackTestEngine)}] Initializing dependencies");
+            services
             .AddSingleton<AlpacaMarketsClient>(provider =>
             {
                 if (config.CustomProperties.TryGetValue(nameof(AlpacaMarketsClientConfig), out var alpacaConfigJson))
@@ -259,8 +126,8 @@ namespace QuantAssembly.BackTesting
                 var accountDataProvider = provider.GetRequiredService<IAccountDataProvider>() as BacktestAccountDataProvider;
                 var timeMachine = provider.GetRequiredService<TimeMachine>();
                 return new BacktestTradeManager(ledger, logger,accountDataProvider, timeMachine, config.AccountId);
-            })
-            .BuildServiceProvider();
+            });
+            this.logger.LogInfo($"[{nameof(BackTestEngine)}] Successfully initialized dependencies");
         }
     }
 }

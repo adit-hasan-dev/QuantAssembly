@@ -6,6 +6,8 @@ namespace QuantAssembly.Common.Config
     { 
         public bool EnableDebugLog { get; set; } 
         public string LogFilePath { get; set; } 
+        public string LedgerFilePath { get; } 
+
         public Dictionary<string, JToken> CustomProperties { get; set; } 
 
     }

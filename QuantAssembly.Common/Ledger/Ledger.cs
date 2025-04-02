@@ -1,10 +1,8 @@
-namespace QuantAssembly.Ledger
+namespace QuantAssembly.Common.Ledger
 {
     using Newtonsoft.Json;
-    using QuantAssembly.Common.Ledger;
     using QuantAssembly.Common.Logging;
     using QuantAssembly.Common.Models;
-    using QuantAssembly.Models;
     using System.Collections.Generic;
     using System.IO;
 

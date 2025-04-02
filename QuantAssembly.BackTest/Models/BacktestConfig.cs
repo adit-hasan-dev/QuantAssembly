@@ -6,9 +6,6 @@ namespace QuantAssembly.BackTesting.Models
     public class Config : BaseConfig
     {
         public string AccountId { get; } 
-        public bool EnableDebugLog { get; } 
-        public string LogFilePath { get; } 
-        public string LedgerFilePath { get; } 
         public Dictionary<string, string> TickerStrategyMap { get; } 
         public string CacheFolderPath { get; }
         // These should be parsed from config

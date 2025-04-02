@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Common.Logging;
@@ -7,17 +8,14 @@ using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
 using QuantAssembly.DataProvider;
 
-namespace QuantAssembly
+namespace QuantAssembly.BackTesting
 {
-    /// <summary>
-    /// This class generates a list of entry signals from the symbols to evaluate
-    /// </summary>
     [PipelineStep]
-    [PipelineStepInput(nameof(QuantContext.symbolsToEvaluate))]
-    [PipelineStepOutput(nameof(QuantContext.signals))]
-    public class GenerateEntrySignalsStep : IPipelineStep<QuantContext>
+    [PipelineStepInput(nameof(BacktestContext.symbolsToEvaluate))]
+    [PipelineStepOutput(nameof(BacktestContext.signals))]
+    public class GenerateEntrySignalsStep : IPipelineStep<BacktestContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig config)
+        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             if (context.strategyProcessor == null)
             {

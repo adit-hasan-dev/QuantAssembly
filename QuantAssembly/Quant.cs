@@ -12,26 +12,19 @@ using Newtonsoft.Json;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Core.Strategy;
 using QuantAssembly.Core.DataProvider;
+using QuantAssembly.Core;
 
 namespace QuantAssembly
 {
-    public class Quant
+    public class Quant : TradingEngine<Config>
     {
-        private Config config;
-        private ILogger logger;
         private bool shouldTerminate;
         private int pollingIntervalInMs;
         private ServiceProvider serviceProvider;
         private IMarketDataProvider marketDataProvider;
-        private ILedger ledger;
 
         public Quant()
         {
-            this.config = ConfigurationLoader.LoadConfiguration<Models.Config>();
-            InitializeDependencies();
-            logger = serviceProvider.GetRequiredService<ILogger>();
-            ledger = serviceProvider.GetRequiredService<ILedger>();
-
             logger.LogInfo("Initializing Quant...");
 
             this.marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
@@ -40,7 +33,7 @@ namespace QuantAssembly
             logger.LogInfo("Successfully initialized Quant.");
         }
 
-        public async Task Run()
+        public override async Task Run()
         {
             var pipeline = new PipelineBuilder<QuantContext>(this.serviceProvider, this.config)
                 .AddStep<InitStep>()
@@ -76,19 +69,9 @@ namespace QuantAssembly
             shouldTerminate = true;
         }
 
-        private void InitializeDependencies()
+        protected override void InitializeDependencies(ServiceCollection services)
         {
-            var services = new ServiceCollection();
-            serviceProvider = services
-            .AddSingleton<ILogger, Logger>(provider =>
-            {
-                return new Logger(this.config, isDevEnv: false);
-            })
-            .AddSingleton<ILedger, Ledger.Ledger>(provider =>
-            {
-                var logger = provider.GetRequiredService<ILogger>();
-                return new Ledger.Ledger(this.config.LedgerFilePath, logger);
-            })
+            services
             .AddSingleton<IIBGWClient, IBGWClient>(provider =>
             {
                 var logger = provider.GetRequiredService<ILogger>();
@@ -136,8 +119,7 @@ namespace QuantAssembly
                 {
                     throw new Exception("PercentageAccountValueRiskManagerConfig not found in config");
                 }
-            })
-            .BuildServiceProvider();
+            });
         }
 
         private void InitializeStrategies(QuantContext context, ILedger ledger)

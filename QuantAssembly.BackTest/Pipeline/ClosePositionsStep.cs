@@ -1,23 +1,23 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Common.Pipeline;
-using QuantAssembly.Models;
+using QuantAssembly.BackTesting.Models;
+using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Common.Config;
-using QuantAssembly.Core.TradeManager;
+using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
+using QuantAssembly.Core.TradeManager;
 
-namespace QuantAssembly
+namespace QuantAssembly.BackTesting
 {
     [PipelineStep]
-    [PipelineStepInput(nameof(QuantContext.signals))]
-    [PipelineStepInput(nameof(QuantContext.openPositions))]
-    [PipelineStepOutput(nameof(QuantContext.transactions))]
-    [PipelineStepOutput(nameof(QuantContext.accountData))]
-    public class ClosePositionsStep : IPipelineStep<QuantContext>
+    [PipelineStepInput(nameof(BacktestContext.signals))]
+    [PipelineStepInput(nameof(BacktestContext.openPositions))]
+    [PipelineStepOutput(nameof(BacktestContext.transactions))]
+    [PipelineStepOutput(nameof(BacktestContext.accountData))]
+    public class ClosePositionsStep : IPipelineStep<BacktestContext>
     {
-        public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
+        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             // We don't invoke the RiskManager to close positions we just sell 
             // the entire position. So this can be done before the RiskManagement step
@@ -49,5 +49,4 @@ namespace QuantAssembly
             context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
         }
     }
-
 }
