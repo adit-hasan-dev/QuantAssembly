@@ -1,6 +1,5 @@
 using QuantAssembly.Common.Models;
 using QuantAssembly.Core.Models;
-using QuantAssembly.Models;
 
 namespace QuantAssembly.Core.Strategy
 {
@@ -9,6 +8,7 @@ namespace QuantAssembly.Core.Strategy
         void LoadStrategyFromFile(string symbol, string filePath);
         void LoadStrategyFromContent(string symbol, string filePath);
         Strategy GetStrategy(string symbol);
+        Dictionary<string, Strategy> GetStrategies();
         void SetStrategyStateForSymbol(string symbol, StrategyState state);
         IList<string> GetLoadedInstruments();
         SignalType EvaluateOpenSignal(MarketData marketData, AccountData accountData, IndicatorData histData, string symbol);

@@ -31,5 +31,24 @@ namespace QuantAssembly.Common
             var jsonNode = JsonNode.Parse(jsonString);
             return jsonNode.ToJsonString(new JsonSerializerOptions { WriteIndented = false });
         }
+
+        public static double CalculateStandardDeviation(IEnumerable<double> dataset, bool sample = false)
+        {
+            List<double> squaredDistances = new List<double>();
+            double meanSquaredDistances = 0;
+
+            int datapointCount = sample ? dataset.Count() - 1 : dataset.Count();
+            double mean = dataset.Sum() / datapointCount;
+
+            foreach (double datapoint in dataset)
+            {
+                double distance = Math.Pow(Math.Abs(datapoint - mean), 2);
+                squaredDistances.Add(distance);
+            }
+
+            meanSquaredDistances = squaredDistances.Sum() / datapointCount;
+
+            return Math.Sqrt(meanSquaredDistances);
+        }
     }
 }

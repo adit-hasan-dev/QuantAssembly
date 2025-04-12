@@ -1,12 +1,10 @@
-namespace QuantAssembly.Strategy
+namespace QuantAssembly.Core.Strategy
 {
     using System.Collections.Generic;
     using Newtonsoft.Json;
     using QuantAssembly.Common.Logging;
     using QuantAssembly.Common.Models;
     using QuantAssembly.Core.Models;
-    using QuantAssembly.Core.Strategy;
-    using QuantAssembly.Models;
     public class StrategyProcessor : IStrategyProcessor
     {
         private Dictionary<string, Strategy> strategies = new Dictionary<string, Strategy>();
@@ -203,8 +201,8 @@ namespace QuantAssembly.Strategy
                 StrategyProperty.ATR => histData.ATR,
                 StrategyProperty.HistoricalHigh => histData.HistoricalHigh,
                 StrategyProperty.HistoricalLow => histData.HistoricalLow,
-                StrategyProperty.ProfitPercentage => position.ProfitOrLoss > 0 ? ((position.ProfitOrLoss*100)/(position.OpenPrice*position.Quantity)) : 0,
-                StrategyProperty.LossPercentage => position.ProfitOrLoss < 0 ? ((position.ProfitOrLoss*100)/(position.OpenPrice*position.Quantity)) : 0,
+                StrategyProperty.ProfitPercentage => position.ProfitOrLossPercentage > 0 ? Math.Abs(position.ProfitOrLossPercentage) : 0,
+                StrategyProperty.LossPercentage => position.ProfitOrLossPercentage < 0 ? Math.Abs(position.ProfitOrLossPercentage) : 0,
                 _ => throw new InvalidOperationException("Invalid property")
             };
         }
@@ -224,6 +222,11 @@ namespace QuantAssembly.Strategy
             {
                 throw new KeyNotFoundException($"No strategy for symbol {symbol} was loaded");
             }
+        }
+
+        public Dictionary<string, Strategy> GetStrategies()
+        {
+            return strategies;
         }
     }
 }

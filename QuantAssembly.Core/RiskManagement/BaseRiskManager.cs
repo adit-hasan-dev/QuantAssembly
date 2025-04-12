@@ -1,11 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Core.Models;
-using QuantAssembly.Models;
 
-namespace QuantAssembly.RiskManagement
+namespace QuantAssembly.Core.RiskManagement
 {
     public abstract class BaseRiskManager<TConfig> : IRiskManager where TConfig : class
     {

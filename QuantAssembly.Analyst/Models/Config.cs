@@ -31,6 +31,18 @@ namespace QuantAssembly.Analyst.Models
         public double? MinimumOpenInterest { get; set; }
         public double? MinimumVolume { get; set; }
         public double? MaxBidAskSpread { get; set; }
+        public double? MinImpliedVolatility { get; set; }
+        public double? MaxImpliedVolatility { get; set; }
+        public double? MinDelta { get; set; }
+        public double? MaxDelta { get; set; }
+        public double? MinGamma { get; set; }
+        public double? MaxGamma { get; set; }
+        public double? MinTheta { get; set; }
+        public double? MaxTheta { get; set; }
+        public double? MinVega { get; set; }
+        public double? MaxVega { get; set; }
+        public double? MinRho { get; set; }
+        public double? MaxRho { get; set; }
     }
 
     public class EmailPublishConfig

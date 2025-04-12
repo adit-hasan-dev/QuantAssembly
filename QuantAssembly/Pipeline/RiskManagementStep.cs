@@ -5,7 +5,8 @@ using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.Models;
-using QuantAssembly.RiskManagement;
+using QuantAssembly.Core.RiskManagement;
+using QuantAssembly.Core.Strategy;
 
 namespace QuantAssembly
 {
@@ -18,10 +19,11 @@ namespace QuantAssembly
         {
             var riskManager = serviceProvider.GetRequiredService<IRiskManager>();
             var logger = serviceProvider.GetRequiredService<ILogger>();
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
             var positions = context.signals.Where(
                 signal => signal.Type == SignalType.Entry)
                 .Select(signal => {
-                    var position = PrepareOpenPosition(context, signal.SymbolName, signal.MarketData);
+                    var position = PrepareOpenPosition(strategyProcessor, signal.SymbolName, signal.MarketData);
                     if (!riskManager.ComputePositionSize(signal.MarketData, signal.IndicatorData, context.accountData, position))
                     {
                         logger.LogInfo($"[{nameof(RiskManagementStep)}] Appropriate resources not available to open position:\n {position}");
@@ -34,9 +36,9 @@ namespace QuantAssembly
             context.positionsToOpen.AddRange(positions);
         }
 
-        private Position PrepareOpenPosition(QuantContext context, string symbol, MarketData marketData)
+        private Position PrepareOpenPosition(IStrategyProcessor strategyProcessor, string symbol, MarketData marketData)
         {
-            var strategy = context.strategyProcessor.GetStrategy(symbol);
+            var strategy = strategyProcessor.GetStrategy(symbol);
             var position = new Position
             {
                 PositionGuid = Guid.NewGuid(),

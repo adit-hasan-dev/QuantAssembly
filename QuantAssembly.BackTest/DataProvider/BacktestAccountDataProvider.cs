@@ -1,4 +1,5 @@
 using QuantAssembly.Core.DataProvider;
+using QuantAssembly.Core.Models;
 using QuantAssembly.Models;
 
 namespace QuantAssembly.BackTesting.DataProvider

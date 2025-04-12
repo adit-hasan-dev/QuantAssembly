@@ -19,9 +19,14 @@ namespace QuantAssembly.BackTesting
         public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             // We expect the RiskManager to have already computed the position size
+            var logger = serviceProvider.GetRequiredService<ILogger>();
+            if (context.positionsToOpen == null || !context.positionsToOpen.Any())
+            {
+                logger.LogInfo($"[{nameof(OpenPositionsStep)}] No positions to open");
+                return;
+            }
             var tradeManager = serviceProvider.GetRequiredService<ITradeManager>();
             var accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
-            var logger = serviceProvider.GetRequiredService<ILogger>();
             foreach(var position in context.positionsToOpen)
             {
                 logger.LogInfo($"[{nameof(OpenPositionsStep)}] Attempting to open position: {position}");

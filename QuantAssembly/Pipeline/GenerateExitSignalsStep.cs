@@ -4,6 +4,7 @@ using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
+using QuantAssembly.Core.Strategy;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Models;
 
@@ -20,13 +21,13 @@ namespace QuantAssembly
     {
         public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
-            ValidatePrerequisites(context);
             var config = baseConfig as Config;
             var logger = serviceProvider.GetRequiredService<ILogger>();
             logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Started generating exit signals");
             
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
             
             List<Signal> exitSignals = new List<Signal>();
 
@@ -36,7 +37,7 @@ namespace QuantAssembly
                 var indicatorData = await IndicatorDataProvider.GetIndicatorDataAsync(position.Symbol);
                 position.CurrentPrice = marketData.LatestPrice;
 
-                var signalType = context!.strategyProcessor!.EvaluateCloseSignal(marketData, indicatorData, position);
+                var signalType = strategyProcessor!.EvaluateCloseSignal(marketData, indicatorData, position);
 
                 if (signalType == SignalType.Exit || signalType == SignalType.StopLoss || signalType == SignalType.TakeProfit)
                 {
@@ -54,14 +55,6 @@ namespace QuantAssembly
 
             context.signals.AddRange(exitSignals);
             logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Successfully generated {exitSignals.Count} exit signals");
-        }
-
-        private void ValidatePrerequisites(QuantContext context)
-        {
-            if (context.strategyProcessor == null)
-            {
-                throw new PipelineException($"[{nameof(GenerateExitSignalsStep)}] StrategyProcessor is not initialized in the context");
-            }
         }
     }
 }

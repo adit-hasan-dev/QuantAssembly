@@ -6,6 +6,7 @@ using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
+using QuantAssembly.Core.Strategy;
 using QuantAssembly.DataProvider;
 
 namespace QuantAssembly.BackTesting
@@ -17,13 +18,14 @@ namespace QuantAssembly.BackTesting
     {
         public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
-            if (context.strategyProcessor == null)
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
+            if (strategyProcessor == null)
             {
                 throw new PipelineException($"[{nameof(GenerateEntrySignalsStep)}] StrategyProcessor is not initialized in the context");
             }
-            if (context.symbolsToEvaluate?.Any() ?? false)
+            if (!context.symbolsToEvaluate?.Any() ?? false)
             {
-                throw new PipelineException($"[{nameof(GenerateEntrySignalsStep)}] No symbols to evaluate. Double check the configuration");
+                return;
             }
             var logger = serviceProvider.GetService<ILogger>();
             logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Started generating entry signals");
@@ -38,7 +40,7 @@ namespace QuantAssembly.BackTesting
             {
                 var marketData = await marketDataProvider.GetMarketDataAsync(symbol);
                 var histData = await IndicatorDataProvider.GetIndicatorDataAsync(symbol);
-                var signalType = context.strategyProcessor.EvaluateOpenSignal(marketData, context.accountData, histData, symbol);
+                var signalType = strategyProcessor.EvaluateOpenSignal(marketData, context.accountData, histData, symbol);
                 if (signalType == SignalType.Entry)
                 {
                     logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Entry conditions for symbol: {symbol} met");

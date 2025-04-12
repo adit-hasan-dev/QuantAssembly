@@ -8,17 +8,25 @@ namespace QuantAssembly.Common.Models
         Closed,
     }
 
+    public enum ClosePositionReason
+    {
+        Unknown,
+        TakeProfitLevelHit,
+        StopLossLevelHit,
+        ExitConditionHit
+    }
+
     public class Position
     {
-        private double openPrice;
-        private double closePrice;
-        private double currentPrice;
-        private double profitOrLoss;
+        public double OpenPrice;
+        public double ClosePrice;
+        public double CurrentPrice;
         public Guid PositionGuid { get; set; } = Guid.NewGuid();
         public string PlatformOrderId { get; set; }
         public string Symbol { get; set; }
         public InstrumentType InstrumentType { get; set; } = InstrumentType.Stock;
         public PositionState State { get; set; }
+        public ClosePositionReason CloseReason { get; set; } = ClosePositionReason.Unknown;
         public DateTime OpenTime { get; set; }
         public DateTime CloseTime { get; set; }
         public string Currency { get; set; } = "USD";
@@ -26,51 +34,28 @@ namespace QuantAssembly.Common.Models
         public string StrategyName { get; set; }
         public string StrategyDefinition { get; set; }
 
-        public double OpenPrice
-        {
-            get => openPrice;
-            set
-            {
-                openPrice = value;
-                UpdateProfitOrLoss();
-            }
-        }
-
-        public double ClosePrice
-        {
-            get => closePrice;
-            set
-            {
-                closePrice = value;
-                UpdateProfitOrLoss();
-            }
-        }
-
-        public double CurrentPrice
-        {
-            get => currentPrice;
-            set
-            {
-                currentPrice = value;
-                UpdateProfitOrLoss();
-            }
-        }
-
         public double ProfitOrLoss
         {
-            get => profitOrLoss;
-            private set => profitOrLoss = value;
+            get
+            {
+                if (State == PositionState.Closed && ClosePrice > 0)
+                {
+                    return (ClosePrice - OpenPrice) * Quantity;
+                }
+                else
+                {
+                    return (CurrentPrice - OpenPrice) * Quantity;
+                }
+            }
         }
 
-        private void UpdateProfitOrLoss()
+        public double ProfitOrLossPercentage
         {
-            if (State == PositionState.Closed && ClosePrice > 0)
+            get
             {
-                ProfitOrLoss = (ClosePrice - OpenPrice) * Quantity;
-            }
-            else
-            {
-                ProfitOrLoss = (CurrentPrice - OpenPrice) * Quantity;
+                if (OpenPrice == 0)
+                    return 0;
+                return (ProfitOrLoss / OpenPrice) * 100;
             }
         }
 

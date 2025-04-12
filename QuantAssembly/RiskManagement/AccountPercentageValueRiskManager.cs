@@ -1,9 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Core.Models;
 using QuantAssembly.Models;
 
-namespace QuantAssembly.RiskManagement
+namespace QuantAssembly.Core.RiskManagement
 {
     public class PercentageAccountValueRiskManagerConfig 
     { 

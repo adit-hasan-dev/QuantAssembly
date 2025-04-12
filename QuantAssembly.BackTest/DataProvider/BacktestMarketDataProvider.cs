@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Alpaca.Markets;
 using QuantAssembly.Common;
-using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Instrumentation;
@@ -89,43 +88,51 @@ namespace QuantAssembly.BackTesting.DataProvider
 
         public void FlushMarketDataCache()
         {
-            throw new NotImplementedException();
+            // no-op
+            return;
         }
 
         private async Task Initialize()
         {
-            await LatencyLogger.DoWithLatencyLoggerAsync(async () =>
+            try
             {
-                foreach (var ticker in tickers)
+                await LatencyLogger.DoWithLatencyLoggerAsync(async () =>
                 {
-                    logger.LogInfo($"[BacktestMarketDataProvider::Inititalize] Getting historical price data for ticker: {ticker}, time period: {timeMachine.timePeriod} and step size: {timeMachine.stepSize}");
-                    var historicalDataStartTime = timeMachine.startTime.Subtract(TimeSpan.FromDays(365));
-                    var historicalData = await this.alpacaClient.GetIndicatorDataAsync<IBar>(ticker, historicalDataStartTime, timeMachine.endTime, StepSize.ThirtyMinutes);
-                    historicalDataCache[ticker] = historicalData.ToList();
-                    marketDataCache[ticker] = new MarketData
+                    foreach (var ticker in tickers)
                     {
-                        Symbol = ticker,
-                        LatestPrice = (double)historicalData.First().Close,
-                        AskPrice = (double)historicalData.First().High,
-                        BidPrice = (double)historicalData.First().Low
-                    };
-                    logger.LogInfo($"[BacktestMarketDataProvider::Inititalize] Precomputing historical indicator data for ticker: {ticker}, time period: {timeMachine.timePeriod} and step size: {timeMachine.stepSize}");
-
-                    await LatencyLogger.DoWithLatencyLoggerAsync(async () =>
-                    {
-                        var progress = new Progress<int>(completedTasks =>
+                        logger.LogInfo($"[BacktestMarketDataProvider::Inititalize] Getting historical price data for ticker: {ticker}, time period: {timeMachine.timePeriod} and step size: {timeMachine.stepSize}");
+                        var historicalDataStartTime = timeMachine.startTime.Subtract(TimeSpan.FromDays(365));
+                        var historicalData = await this.alpacaClient.GetIndicatorDataAsync<IBar>(ticker, historicalDataStartTime, timeMachine.endTime, StepSize.ThirtyMinutes);
+                        historicalDataCache[ticker] = historicalData.ToList();
+                        marketDataCache[ticker] = new MarketData
                         {
-                            logger.LogInfo($"Completed {completedTasks} precompute tasks for ticker: {ticker}");
-                        });
-                        // Precompute playout the entire time interval, so we give it 
-                        // a separate instance that doesn't interfere with the global time machine
-                        var newTimeMachine = timeMachine.Clone();
-                        await PreComputeHistoricalIndicators(ticker, newTimeMachine, progress);
-                    }, "BacktestMarketDataProvider::PreComputeHistoricalIndicators", logger);
-                }
-                isInitialized = true;
-            }, "BacktestMarketDataProvider::Initialize", logger);
+                            Symbol = ticker,
+                            LatestPrice = (double)historicalData.First().Close,
+                            AskPrice = (double)historicalData.First().High,
+                            BidPrice = (double)historicalData.First().Low
+                        };
+                        logger.LogInfo($"[BacktestMarketDataProvider::Inititalize] Precomputing historical indicator data for ticker: {ticker}, time period: {timeMachine.timePeriod} and step size: {timeMachine.stepSize}");
 
+                        await LatencyLogger.DoWithLatencyLoggerAsync(async () =>
+                        {
+                            var progress = new Progress<int>(completedTasks =>
+                            {
+                                logger.LogInfo($"Completed {completedTasks} precompute tasks for ticker: {ticker}");
+                            });
+                            // Precompute playout the entire time interval, so we give it 
+                            // a separate instance that doesn't interfere with the global time machine
+                            var newTimeMachine = timeMachine.Clone();
+                            await PreComputeHistoricalIndicators(ticker, newTimeMachine, progress);
+                        }, "BacktestMarketDataProvider::PreComputeHistoricalIndicators", logger);
+                    }
+                    isInitialized = true;
+                }, "BacktestMarketDataProvider::Initialize", logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex);
+                throw;
+            }
         }
 
         private async Task PreComputeHistoricalIndicators(string ticker, TimeMachine timeMachine, IProgress<int> progress)

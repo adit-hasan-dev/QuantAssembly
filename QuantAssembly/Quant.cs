@@ -1,18 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Strategy;
 using QuantAssembly.Common.Pipeline;
-using QuantAssembly.RiskManagement;
 using QuantAssembly.Models;
 using Newtonsoft.Json;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Core.Strategy;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core;
+using QuantAssembly.Core.RiskManagement;
+using QuantAssembly.Core.Models;
 
 namespace QuantAssembly
 {
@@ -20,7 +19,6 @@ namespace QuantAssembly
     {
         private bool shouldTerminate;
         private int pollingIntervalInMs;
-        private ServiceProvider serviceProvider;
         private IMarketDataProvider marketDataProvider;
 
         public Quant()
@@ -44,7 +42,8 @@ namespace QuantAssembly
                 .AddStep<OpenPositionsStep>()
                 .Build();
 
-            InitializeStrategies(pipeline.GetContext(), ledger);
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
+            InitializeStrategies(strategyProcessor, ledger);
             logger.LogInfo($"[ReQuant::Run] Starting main loop with polling interval: {pollingIntervalInMs}");
 
             while (!shouldTerminate)
@@ -122,15 +121,15 @@ namespace QuantAssembly
             });
         }
 
-        private void InitializeStrategies(QuantContext context, ILedger ledger)
+        private void InitializeStrategies(IStrategyProcessor strategyProcessor, ILedger ledger)
         {
             logger.LogInfo($"[{nameof(Quant)}] Loading all strategies.");
-            context.strategyProcessor = new StrategyProcessor(logger);
+            strategyProcessor = new StrategyProcessor(logger);
             foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
             {
                 try
                 {
-                    context.strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                    strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
                 }
                 catch (Exception ex)
                 {
@@ -148,10 +147,11 @@ namespace QuantAssembly
                 logger.LogInfo($"Found {retiredTickers.Count()} symbols with open positions but no strategy defined. Loading the original strategy from positions in SellOnly mode");
                 foreach (var ticker in retiredTickers)
                 {
-                    context.strategyProcessor.LoadStrategyFromContent(ticker.Symbol, ticker.StrategyDefinition);
-                    context.strategyProcessor.SetStrategyStateForSymbol(ticker.Symbol, StrategyState.SellOnly);
+                    strategyProcessor.LoadStrategyFromContent(ticker.Symbol, ticker.StrategyDefinition);
+                    strategyProcessor.SetStrategyStateForSymbol(ticker.Symbol, StrategyState.SellOnly);
                 }
             }
+            logger.LogInfo($"[{nameof(Quant)}] Successfully loaded {strategyProcessor.GetLoadedInstruments().Count} strategies");
         }
     }
 }

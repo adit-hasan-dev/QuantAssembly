@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Logging;
-using Validator = QuantAssembly.Utility.Validator;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Core.TradeManager;
@@ -23,20 +22,6 @@ namespace QuantAssembly.TradeManager
         }
         public async Task<TransactionResult> ClosePositionAsync(Position position, OrderType orderType)
         {
-            Validator.AssertPropertiesNonNull(
-                position,
-                new List<string> {
-                    "PositionGuid",
-                    "PlatformOrderId",
-                    "Symbol",
-                    "State",
-                    "Currency",
-                    "OpenPrice",
-                    "CurrentPrice",
-                    "Quantity"
-                }
-            );
-
             logger.LogInfo($"[IBGWTradeManager::ClosePositionAsync] Attempting to close position:\n{position}nOrderType:{orderType}");
 
             try
@@ -55,22 +40,6 @@ namespace QuantAssembly.TradeManager
                     logger.LogError($"[IBGWTradeManager::ClosePositionAsync] Order placement failed or was canceled. Order ID: {result.OrderId}, Status: {result.TransactionState} positionId: {position.PositionGuid}");
                 }
 
-                Validator.AssertPropertiesNonNull(
-                    position,
-                    new List<string> {
-                        "PositionGuid",
-                        "PlatformOrderId",
-                        "Symbol",
-                        "State",
-                        "Currency",
-                        "OpenPrice",
-                        "CurrentPrice",
-                        "Quantity",
-                        "ClosePrice",
-                        "CloseTime"
-                    }
-                );
-
                 return result;
             }
             catch (Exception ex)
@@ -88,20 +57,6 @@ namespace QuantAssembly.TradeManager
 
         public async Task<TransactionResult> OpenPositionAsync(Position position, OrderType orderType)
         {
-            Validator.AssertPropertiesNonNull(
-                position,
-                new List<string> {
-                    "PositionGuid",
-                    "Symbol",
-                    "InstrumentType",
-                    "State",
-                    "Currency",
-                    "OpenPrice",
-                    "CurrentPrice",
-                    "Quantity"
-                }
-            );
-
             logger.LogInfo($"[IBGWTradeManager::OpenPositionAsync] Attempting to open position:\n{position}\nOrderType:{orderType}");
 
             try
@@ -118,19 +73,6 @@ namespace QuantAssembly.TradeManager
                 {
                     logger.LogError($"[IBGWTradeManager::OpenPositionAsync] Order placement failed or was canceled. Order ID: {result.OrderId}, Status: {result.TransactionState} positionId: {position.PositionGuid}");
                 }
-
-                Validator.AssertPropertiesNonNull(
-                    position,
-                    new List<string> {
-                        "State",
-                        "Currency",
-                        "PlatformOrderId",
-                        "OpenTime",
-                        "OpenPrice",
-                        "CurrentPrice",
-                        "Quantity"
-                    }
-                );
 
                 return result;
             }

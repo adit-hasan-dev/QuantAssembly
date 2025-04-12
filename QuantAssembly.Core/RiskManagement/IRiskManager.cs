@@ -1,7 +1,7 @@
 using QuantAssembly.Common.Models;
-using QuantAssembly.Models;
+using QuantAssembly.Core.Models;
 
-namespace QuantAssembly.RiskManagement
+namespace QuantAssembly.Core.RiskManagement
 {
     public interface IRiskManager
     {

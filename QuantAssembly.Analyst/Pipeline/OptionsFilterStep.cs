@@ -44,6 +44,66 @@ namespace QuantAssembly.Analyst
                     ((c.AskPrice - c.BidPrice) / c.AskPrice) <= optionsFilterConfig.MaxBidAskSpread.Value);
             }
 
+            if (optionsFilterConfig.MinImpliedVolatility.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.ImpliedVolatility >= optionsFilterConfig.MinImpliedVolatility.Value);
+            }
+
+            if (optionsFilterConfig.MaxImpliedVolatility.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.ImpliedVolatility <= optionsFilterConfig.MaxImpliedVolatility.Value);
+            }
+
+            if (optionsFilterConfig.MinDelta.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Delta >= optionsFilterConfig.MinDelta.Value);
+            }
+
+            if (optionsFilterConfig.MaxDelta.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Delta <= optionsFilterConfig.MaxDelta.Value);
+            }
+
+            if (optionsFilterConfig.MinGamma.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Gamma >= optionsFilterConfig.MinGamma.Value);
+            }
+
+            if (optionsFilterConfig.MaxGamma.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Gamma <= optionsFilterConfig.MaxGamma.Value);
+            }
+
+            if (optionsFilterConfig.MinTheta.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Theta >= optionsFilterConfig.MinTheta.Value);
+            }
+
+            if (optionsFilterConfig.MaxTheta.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Theta <= optionsFilterConfig.MaxTheta.Value);
+            }
+
+            if (optionsFilterConfig.MinVega.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Vega >= optionsFilterConfig.MinVega.Value);
+            }
+
+            if (optionsFilterConfig.MaxVega.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Vega <= optionsFilterConfig.MaxVega.Value);
+            }
+
+            if (optionsFilterConfig.MinRho.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Rho >= optionsFilterConfig.MinRho.Value);
+            }
+
+            if (optionsFilterConfig.MaxRho.HasValue)
+            {
+                filteredData = filteredData.Where(c => c.Rho <= optionsFilterConfig.MaxRho.Value);
+            }
+
             logger.LogInfo($"[{nameof(OptionsFilterStep)}] Successfully filtered options contracts. Remaining contracts: {filteredData.Count()}");
             context.optionsContractData = filteredData.ToList();
         }

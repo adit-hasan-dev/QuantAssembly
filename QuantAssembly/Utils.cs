@@ -2,49 +2,6 @@ namespace QuantAssembly.Utility
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
-    using System.Reflection;
-
-    public static class Validator
-    {
-        /// <summary>
-        /// Checks if all specified properties of an object are non-null.
-        /// </summary>
-        /// <param name="obj">The object to check.</param>
-        /// <param name="propertyNames">A list of property names to check for non-null values.</param>
-        /// <returns>True if all specified properties are non-null; otherwise, false.</returns>
-        public static bool AssertPropertiesNonNull(object obj, List<string> propertyNames)
-        {
-            if (obj == null)
-            {
-                throw new ArgumentNullException(nameof(obj));
-            }
-
-            if (propertyNames == null || propertyNames.Count == 0)
-            {
-                throw new ArgumentException("The list of property names cannot be null or empty.", nameof(propertyNames));
-            }
-
-            Type type = obj.GetType();
-
-            foreach (string propertyName in propertyNames)
-            {
-                PropertyInfo property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-                if (property == null)
-                {
-                    throw new ArgumentException($"Property '{propertyName}' does not exist on type '{type.Name}'.");
-                }
-
-                object value = property.GetValue(obj);
-                if (value == null)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
 
     public static class CacheWrapper
     {

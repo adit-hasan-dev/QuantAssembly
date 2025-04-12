@@ -123,9 +123,9 @@ namespace QuantAssembly.Common.Impl.AlpacaMarkets
                 var batchResults = await Task.WhenAll(tasks);
                 return batchResults.SelectMany(dict => dict).ToDictionary(kv => kv.Key, kv => kv.Value);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new InvalidOperationException($"Configuration for {typeof(AlpacaMarketsClientConfig).Name} not found.");
+                throw;
             }
         }
 

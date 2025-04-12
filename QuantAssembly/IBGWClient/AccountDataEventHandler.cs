@@ -1,6 +1,6 @@
 using IBApi;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
+using QuantAssembly.Core.Models;
 
 namespace QuantAssembly.Impl.IBGW
 {

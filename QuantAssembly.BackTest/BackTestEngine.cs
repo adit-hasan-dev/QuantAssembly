@@ -3,18 +3,19 @@ using Newtonsoft.Json;
 using QuantAssembly.BackTesting.DataProvider;
 using QuantAssembly.BackTesting.TradeManager;
 using QuantAssembly.BackTesting.Models;
-using QuantAssembly.Common.Config;
 using QuantAssembly.DataProvider;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Constants;
-using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Common;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.TradeManager;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Core;
+using QuantAssembly.Core.Strategy;
+using QuantAssembly.Common.Models;
+using QuantAssembly.Core.RiskManagement;
 
 namespace QuantAssembly.BackTesting
 {
@@ -25,11 +26,8 @@ namespace QuantAssembly.BackTesting
     }
     public class BackTestEngine : TradingEngine<Config>
     {
-        private ServiceProvider serviceProvider;
-        private TimePeriod timePeriod;
-        private StepSize stepSize;
-        private Config config;
-        private ILogger logger;
+        private const TimePeriod timePeriod = TimePeriod.OneYear;
+        private const StepSize stepSize = StepSize.ThirtyMinutes;
 
         private BacktestConfig backtestConfig;
 
@@ -42,17 +40,21 @@ namespace QuantAssembly.BackTesting
                 .AddStep<ClosePositionsStep>()
                 .AddStep<RiskManagementStep>()
                 .AddStep<OpenPositionsStep>()
-                .AddStep<UpdateSummaryStep>()
                 .Build();
-            
-            logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {this.stepSize} and time period: {this.timePeriod}");
+
             var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();
-            // TODO: init summary
+            var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
+            this.InitializeStrategies(strategyProcessor, marketDataProvider);
+
+            logger.LogInfo($"[BackTestEngine::Run] Starting main loop with polling interval: {BackTestEngine.stepSize} and time period: {BackTestEngine.timePeriod}");
             while (timeMachine.GetCurrentTime() < timeMachine.endTime)
             {
                 try
                 {
+                    logger.LogInfo($"[BackTestEngine::Run] Current time: {timeMachine.GetCurrentTime()}");
                     await pipeline.Execute();
+                    timeMachine.StepForward();
                 }
                 catch (Exception ex)
                 {
@@ -61,7 +63,7 @@ namespace QuantAssembly.BackTesting
             }
 
             logger.LogInfo($"[BackTestEngine::Run] Completed backtesting period");
-            logger.LogInfo(pipeline.GetContext().backtestSummary.ToString());
+            logger.LogInfo(GenerateBacktestSummary().ToString());
         }
 
         protected override void InitializeDependencies(ServiceCollection services)
@@ -83,7 +85,7 @@ namespace QuantAssembly.BackTesting
             .AddSingleton<TimeMachine>(provider =>
             {
                 var startTime = DateTime.UtcNow.Subtract(Common.Utility.GetTimeSpanFromTimePeriod(timePeriod)).Subtract(TimeSpan.FromMinutes(16));
-                return new TimeMachine(this.timePeriod, this.stepSize, startTime);
+                return new TimeMachine(BackTestEngine.timePeriod, BackTestEngine.stepSize, startTime);
             })
             .AddSingleton<ITimeProvider>(provider =>
             {
@@ -125,9 +127,128 @@ namespace QuantAssembly.BackTesting
                 var ledger = provider.GetRequiredService<ILedger>();
                 var accountDataProvider = provider.GetRequiredService<IAccountDataProvider>() as BacktestAccountDataProvider;
                 var timeMachine = provider.GetRequiredService<TimeMachine>();
-                return new BacktestTradeManager(ledger, logger,accountDataProvider, timeMachine, config.AccountId);
+                return new BacktestTradeManager(ledger, logger, accountDataProvider, timeMachine, config.AccountId);
+            })
+            .AddSingleton<IRiskManager, PercentageAccountValueRiskManager>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger>();
+                if (this.config.CustomProperties.TryGetValue(nameof(PercentageAccountValueRiskManagerConfig), out var riskManagerConfigJson))
+                {
+                    var percentageRiskManagerConfig = JsonConvert.DeserializeObject<PercentageAccountValueRiskManagerConfig>(riskManagerConfigJson.ToString());
+                    return new PercentageAccountValueRiskManager(provider, this.config.RiskManagement, percentageRiskManagerConfig);
+                }
+                else
+                {
+                    throw new Exception("PercentageAccountValueRiskManagerConfig not found in config");
+                }
+            })
+            .AddSingleton<IStrategyProcessor, StrategyProcessor>(provider =>
+            {
+                var logger = provider.GetRequiredService<ILogger>();
+                return new StrategyProcessor(logger);
             });
             this.logger.LogInfo($"[{nameof(BackTestEngine)}] Successfully initialized dependencies");
+        }
+
+        private void InitializeStrategies(IStrategyProcessor strategyProcessor, IMarketDataProvider marketDataProvider)
+        {
+            logger.LogInfo($"[{nameof(BackTestEngine)}] Loading all strategies.");
+            foreach (var (ticker, strategyPath) in config.TickerStrategyMap)
+            {
+                try
+                {
+                    strategyProcessor.LoadStrategyFromFile(ticker, strategyPath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex);
+                }
+            }
+
+            // We don't expect there to be any retired tickers when backtesting
+            marketDataProvider.FlushMarketDataCache();
+            logger.LogInfo($"[{nameof(BackTestEngine)}] Successfully loaded {strategyProcessor.GetLoadedInstruments().Count} strategies");
+        }
+
+        private BackTestSummary GenerateBacktestSummary()
+        {
+            this.logger.LogInfo($"[{nameof(BackTestEngine)}] Generating backtest summary");
+
+            var ledger = this.serviceProvider.GetRequiredService<ILedger>();
+            var openPositions = ledger.GetOpenPositions();
+            var closedPositions = ledger.GetClosedPositions();
+
+            var finalPortfolioValue = closedPositions.Sum(p => p.ProfitOrLoss) +
+                                      openPositions.Sum(p => (p.CurrentPrice - p.OpenPrice) * p.Quantity) +
+                                      this.backtestConfig.InitialPortfolioValue;
+
+            var allPositions = openPositions.Concat(closedPositions);
+            var strategyReports = allPositions
+                .GroupBy(p => p.StrategyName)
+                .Select(group =>
+                {
+                    var strategyName = group.Key;
+                    var positions = group.ToList();
+                    var closedPositionsForStrategy = positions.Where(p => p.State == PositionState.Closed).ToList();
+
+                    var takeProfitPositions = closedPositionsForStrategy
+                        .Where(p => p.CloseReason == ClosePositionReason.TakeProfitLevelHit)
+                        .ToList();
+                    var stopLossPositions = closedPositionsForStrategy
+                        .Where(p => p.CloseReason == ClosePositionReason.StopLossLevelHit)
+                        .ToList();
+
+                    var profits = closedPositionsForStrategy.Select(p => p.ProfitOrLoss).ToList();
+                    var cumulativeReturns = profits.Aggregate(new List<double> { 0.0 }, (acc, x) =>
+                    {
+                        acc.Add(acc.Last() + x);
+                        return acc;
+                    });
+
+                    // Use the CalculateStandardDeviation method from Utils.cs
+                    var standardDeviation = profits.Any() ? Common.Utility.CalculateStandardDeviation(profits) : 0;
+
+                    return new BacktestStrategyReport
+                    {
+                        StrategyName = strategyName,
+                        StopLossConditionsHit = stopLossPositions.Count,
+                        ExitConditionsHit = closedPositionsForStrategy.Count(p => p.CloseReason == ClosePositionReason.ExitConditionHit),
+                        EntryConditionsHit = positions.Count,
+                        TakeProfitConditionsHit = takeProfitPositions.Count,
+                        PositionsStillOpen = positions.Count(p => p.State == PositionState.Open),
+                        AverageProfitOnTakeProfit = takeProfitPositions.Any() ? takeProfitPositions.Average(p => p.ProfitOrLoss) : 0,
+                        AverageLossOnStopLoss = stopLossPositions.Any() ? stopLossPositions.Average(p => p.ProfitOrLoss) : 0,
+                        AverageHoldingPeriodInDays = closedPositionsForStrategy.Any()
+                            ? closedPositionsForStrategy.Average(p => (p.CloseTime - p.OpenTime).TotalDays)
+                            : 0,
+                        WinRate = closedPositionsForStrategy.Any()
+                            ? (double)closedPositionsForStrategy.Count(p => p.ProfitOrLoss > 0) / closedPositionsForStrategy.Count
+                            : 0,
+                        LossRate = closedPositionsForStrategy.Any()
+                            ? (double)closedPositionsForStrategy.Count(p => p.ProfitOrLoss < 0) / closedPositionsForStrategy.Count
+                            : 0,
+                        MaxDrawdown = cumulativeReturns.Any()
+                            ? cumulativeReturns.Zip(cumulativeReturns.Skip(1), (prev, curr) => curr - prev).Min()
+                            : 0,
+                        SharpeRatio = standardDeviation > 0
+                            ? profits.Average() / standardDeviation
+                            : 0,
+                        ProfitFactor = profits.Any(p => p > 0) && profits.Any(p => p < 0)
+                            ? profits.Where(p => p > 0).Sum() / Math.Abs(profits.Where(p => p < 0).Sum())
+                            : 0,
+                        AverageReturnPerTrade = profits.Any() ? profits.Average() : 0,
+                        LargestSingleTradeProfit = profits.Any() ? profits.Max() : 0,
+                        LargestSingleTradeLoss = profits.Any() ? profits.Min() : 0
+                    };
+                })
+                .ToList();
+
+            return new BackTestSummary
+            {
+                InitialPortfolioValue = this.backtestConfig.InitialPortfolioValue,
+                FinalPortfolioValue = finalPortfolioValue,
+                backtestStrategyReports = strategyReports
+            };
         }
     }
 }

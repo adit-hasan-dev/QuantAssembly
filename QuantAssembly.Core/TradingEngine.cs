@@ -20,21 +20,20 @@ namespace QuantAssembly.Core
             InitializeCoreDependencies(services);
             InitializeDependencies(services);
             this.serviceProvider = services.BuildServiceProvider();
-            logger = serviceProvider.GetRequiredService<ILogger>();
-            ledger = serviceProvider.GetRequiredService<ILedger>();
         }
 
         public void InitializeCoreDependencies(ServiceCollection services)
         {
+            this.logger = new Logger(this.config, isDevEnv: true);
+            this.ledger = new Ledger(this.config.LedgerFilePath, this.logger);
             services
             .AddSingleton<ILogger, Logger>(provider =>
             {
-                return new Logger(this.config, isDevEnv: false);
+                return (Logger)this.logger;
             })
             .AddSingleton<ILedger, Ledger>(provider =>
             {
-                var logger = provider.GetRequiredService<ILogger>();
-                return new Ledger(this.config.LedgerFilePath, logger);
+                return new Ledger(this.config.LedgerFilePath, this.logger);
             });
         }
 

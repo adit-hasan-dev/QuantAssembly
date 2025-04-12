@@ -31,19 +31,6 @@ namespace QuantAssembly.BackTesting.TradeManager
 
     public async Task<TransactionResult> OpenPositionAsync(Position position, OrderType orderType)
     {
-        Validator.AssertPropertiesNonNull(
-            position,
-            new List<string> {
-                "PositionGuid",
-                "Symbol",
-                "InstrumentType",
-                "State",
-                "Currency",
-                "CurrentPrice",
-                "Quantity"
-            }
-        );
-
         logger.LogInfo($"[BacktestTradeManager::OpenPositionAsync] Attempting to open position:\n{position}\nOrderType:{orderType}");
 
         try
@@ -70,19 +57,6 @@ namespace QuantAssembly.BackTesting.TradeManager
 
             logger.LogInfo($"[BacktestTradeManager::OpenPositionAsync] Order placed successfully. Order ID: {result.OrderId}, Avg Fill Price: {position.OpenPrice} positionId: {position.PositionGuid}");
 
-            Validator.AssertPropertiesNonNull(
-                position,
-                new List<string> {
-                    "State",
-                    "Currency",
-                    "PlatformOrderId",
-                    "OpenTime",
-                    "OpenPrice",
-                    "CurrentPrice",
-                    "Quantity"
-                }
-            );
-
             return await Task.FromResult(result);
         }
         catch (Exception ex)
@@ -95,20 +69,6 @@ namespace QuantAssembly.BackTesting.TradeManager
 
     public async Task<TransactionResult> ClosePositionAsync(Position position, OrderType orderType)
     {
-        Validator.AssertPropertiesNonNull(
-            position,
-            new List<string> {
-                "PositionGuid",
-                "PlatformOrderId",
-                "Symbol",
-                "State",
-                "Currency",
-                "OpenPrice",
-                "CurrentPrice",
-                "Quantity"
-            }
-        );
-
         logger.LogInfo($"[BacktestTradeManager::ClosePositionAsync] Attempting to close position:\n{position}\nOrderType:{orderType}");
 
         try
@@ -135,22 +95,6 @@ namespace QuantAssembly.BackTesting.TradeManager
             };
 
             logger.LogInfo($"[BacktestTradeManager::ClosePositionAsync] Order placed successfully. Order ID: {result.OrderId}, Avg Fill Price: {position.ClosePrice} positionId: {position.PositionGuid}");
-
-            Validator.AssertPropertiesNonNull(
-                position,
-                new List<string> {
-                    "PositionGuid",
-                    "PlatformOrderId",
-                    "Symbol",
-                    "State",
-                    "Currency",
-                    "OpenPrice",
-                    "CurrentPrice",
-                    "Quantity",
-                    "ClosePrice",
-                    "CloseTime"
-                }
-            );
 
             return await Task.FromResult(result);
         }

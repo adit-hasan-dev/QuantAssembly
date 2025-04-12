@@ -1,4 +1,4 @@
-namespace QuantAssembly.Models
+namespace QuantAssembly.Core.Models
 {
     public class AccountData
     {

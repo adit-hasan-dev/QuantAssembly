@@ -9,7 +9,7 @@ using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Strategy;
 using QuantAssembly.DataProvider;
-using QuantAssembly.RiskManagement;
+using QuantAssembly.Core.RiskManagement;
 
 namespace QuantAssembly.BackTesting
 {
@@ -29,6 +29,7 @@ namespace QuantAssembly.BackTesting
             var timeProvider = serviceProvider.GetRequiredService<ITimeProvider>();
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             var accountDataProvider = serviceProvider.GetRequiredService<IAccountDataProvider>();
+            var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
             var openPositions = ledger.GetOpenPositions();
             marketDataProvider!.FlushMarketDataCache();
             context.accountData = await accountDataProvider.GetAccountDataAsync(config.AccountId);
@@ -46,7 +47,7 @@ namespace QuantAssembly.BackTesting
                 }
             }
             filteredPositions = filteredPositions.Where(position => {
-                var strategy = context.strategyProcessor!.GetStrategy(position.Symbol);
+                var strategy = strategyProcessor!.GetStrategy(position.Symbol);
 
                 if (strategy.State == StrategyState.Halted)
                 {
@@ -80,7 +81,7 @@ namespace QuantAssembly.BackTesting
             }
 
             context.symbolsToEvaluate = context.symbolsToEvaluate.Where(symbol => {
-                var strategy = context.strategyProcessor!.GetStrategy(symbol);
+                var strategy = strategyProcessor!.GetStrategy(symbol);
                 if (strategy.State != StrategyState.Active)
                 {
                     logger.LogInfo($"[{nameof(InitStep)}] Strategy {strategy.Name} for symbol {symbol} is inactive. Not processing any entry signals");
