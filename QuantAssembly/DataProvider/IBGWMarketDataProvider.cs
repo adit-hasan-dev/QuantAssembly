@@ -1,7 +1,7 @@
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Utility;
+using QuantAssembly.Core.DataProvider;
 
 namespace QuantAssembly.DataProvider
 {

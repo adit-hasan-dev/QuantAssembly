@@ -1,7 +1,6 @@
 using IBApi;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
-using QuantAssembly.Models;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Core.Models;
 

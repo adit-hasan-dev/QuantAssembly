@@ -1,8 +1,7 @@
 using Newtonsoft.Json.Linq;
 using QuantAssembly.Common.Config;
-using QuantAssembly.Core.Models;
 
-namespace QuantAssembly.Models
+namespace QuantAssembly.Core.Models
 {
     public class Config : BaseConfig
     { 

@@ -1,9 +1,6 @@
 using QuantAssembly.BackTesting.DataProvider;
 using QuantAssembly.Common.Logging;
-using QuantAssembly.Models;
 using QuantAssembly.Common.Models;
-using QuantAssembly.TradeManager;
-using QuantAssembly.Utility;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Common;
 using QuantAssembly.Common.Ledger;

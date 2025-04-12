@@ -5,8 +5,6 @@ using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
 using QuantAssembly.Core.Strategy;
-using QuantAssembly.DataProvider;
-using QuantAssembly.Models;
 
 namespace QuantAssembly
 {

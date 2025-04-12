@@ -1,6 +1,6 @@
 using QuantAssembly.Common.Models;
 
-namespace QuantAssembly.DataProvider
+namespace QuantAssembly.Core.DataProvider
 {
     public interface IMarketDataProvider
     {

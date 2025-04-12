@@ -1,24 +1,23 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
-using QuantAssembly.Common.Constants;
-using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
+using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
 using QuantAssembly.Core.TradeManager;
+using QuantAssembly.Common.Constants;
 
-namespace QuantAssembly.BackTesting
+namespace QuantAssembly.Core.Pipeline
 {
     [PipelineStep]
-    [PipelineStepInput(nameof(BacktestContext.signals))]
-    [PipelineStepInput(nameof(BacktestContext.openPositions))]
-    [PipelineStepOutput(nameof(BacktestContext.transactions))]
-    [PipelineStepOutput(nameof(BacktestContext.accountData))]
-    public class ClosePositionsStep : IPipelineStep<BacktestContext>
+    [PipelineStepInput(nameof(QuantContext.signals))]
+    [PipelineStepInput(nameof(QuantContext.openPositions))]
+    [PipelineStepOutput(nameof(QuantContext.transactions))]
+    [PipelineStepOutput(nameof(QuantContext.accountData))]
+    public class ClosePositionsStep<TContext> : IPipelineStep<TContext> where TContext : QuantContext, new()
     {
-        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
+        public async Task Execute(TContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             // We don't invoke the RiskManager to close positions we just sell 
             // the entire position. So this can be done before the RiskManagement step
@@ -32,7 +31,7 @@ namespace QuantAssembly.BackTesting
 
             if (exitSignals == null || !exitSignals.Any())
             {
-                logger.LogInfo($"[{nameof(ClosePositionsStep)}] No exit signals to process");
+                logger.LogInfo($"[{nameof(ClosePositionsStep<TContext>)}] No exit signals to process");
                 return;
             }
 
@@ -42,13 +41,13 @@ namespace QuantAssembly.BackTesting
                 
                 if (position == null)
                 {
-                    throw new PipelineException($"[{nameof(ClosePositionsStep)}] Position not found for signal: {signal}");
+                    throw new PipelineException($"[{nameof(ClosePositionsStep<TContext>)}] Position not found for signal: {signal}");
                 }
                 // TODO: Make OrderType configurable
                 var result = await tradeManager.ClosePositionAsync(position, OrderType.Market);
                 if (result?.TransactionState != TransactionState.Completed)
                 {
-                    logger.LogWarn($"[{nameof(ClosePositionsStep)}] Failed to close position: {position}");
+                    logger.LogWarn($"[{nameof(ClosePositionsStep<TContext>)}] Failed to close position: {position}");
                 }
                 position.CloseReason = signal.Type switch
                 {

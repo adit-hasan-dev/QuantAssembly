@@ -1,5 +1,4 @@
 using IBApi;
-using QuantAssembly.Models;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Common.Constants;
 using QuantAssembly.Core.Models;

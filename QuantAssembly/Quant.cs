@@ -4,7 +4,6 @@ using QuantAssembly.Common.Impl.AlpacaMarkets;
 using QuantAssembly.Impl.IBGW;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
-using QuantAssembly.Models;
 using Newtonsoft.Json;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Core.Strategy;

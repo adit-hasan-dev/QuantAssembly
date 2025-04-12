@@ -16,6 +16,7 @@ using QuantAssembly.Core;
 using QuantAssembly.Core.Strategy;
 using QuantAssembly.Common.Models;
 using QuantAssembly.Core.RiskManagement;
+using QuantAssembly.Core.Pipeline;
 
 namespace QuantAssembly.BackTesting
 {
@@ -34,12 +35,12 @@ namespace QuantAssembly.BackTesting
         public override async Task Run()
         {
             var pipeline = new PipelineBuilder<BacktestContext>(this.serviceProvider, this.config)
-                .AddStep<InitStep>()
-                .AddStep<GenerateExitSignalsStep>()
-                .AddStep<GenerateEntrySignalsStep>()
-                .AddStep<ClosePositionsStep>()
-                .AddStep<RiskManagementStep>()
-                .AddStep<OpenPositionsStep>()
+                .AddStep<InitStep<BacktestContext>>()
+                .AddStep<GenerateExitSignalsStep<BacktestContext>>()
+                .AddStep<GenerateEntrySignalsStep<BacktestContext>>()
+                .AddStep<ClosePositionsStep<BacktestContext>>()
+                .AddStep<RiskManagementStep<BacktestContext>>()
+                .AddStep<OpenPositionsStep<BacktestContext>>()
                 .Build();
 
             var timeMachine = serviceProvider.GetRequiredService<TimeMachine>();

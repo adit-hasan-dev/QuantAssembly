@@ -1,6 +1,5 @@
 using QuantAssembly.Common.Models;
 using QuantAssembly.Core.Models;
-using QuantAssembly.Models;
 
 namespace QuantAssembly.Core.RiskManagement
 {

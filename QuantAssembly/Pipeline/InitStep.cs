@@ -24,7 +24,7 @@ namespace QuantAssembly
     {
         public async Task Execute(QuantContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
-            var config = baseConfig as Models.Config;
+            var config = baseConfig as Config;
             var ledger = serviceProvider.GetService<ILedger>();
             var logger = serviceProvider.GetService<ILogger>();
             logger.LogInfo($"[{nameof(InitStep)}] Started init step");

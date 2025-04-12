@@ -1,35 +1,34 @@
 using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
 using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Core.Models;
 using QuantAssembly.Core.Strategy;
-using QuantAssembly.DataProvider;
 
-namespace QuantAssembly.BackTesting
+namespace QuantAssembly.Core.Pipeline
 {
     [PipelineStep]
-    [PipelineStepInput(nameof(BacktestContext.openPositions))]
+    [PipelineStepInput(nameof(QuantContext.openPositions))]
     [PipelineStepOutput(nameof(QuantContext.signals))]
-    public class GenerateExitSignalsStep : IPipelineStep<BacktestContext>
+    public class GenerateExitSignalsStep<TContext> : IPipelineStep<TContext> where TContext : QuantContext, new()
     {
-        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
+        public async Task Execute(TContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
+            var logger = serviceProvider.GetRequiredService<ILogger>();
             if (context.openPositions == null || !context.openPositions.Any())
             {
+                logger.LogInfo($"[{nameof(GenerateExitSignalsStep<TContext>)}] No open positions so skipping evaluating for exit signals");
                 return;
             }
             if (strategyProcessor == null)
             {
-                throw new PipelineException($"[{nameof(GenerateExitSignalsStep)}] StrategyProcessor is not initialized in the context");
+                throw new PipelineException($"[{nameof(GenerateExitSignalsStep<TContext>)}] StrategyProcessor is not initialized in the context");
             }
             
             var config = baseConfig as Models.Config;
-            var logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Started generating exit signals for {context.openPositions.Count} open positions");
+            logger.LogInfo($"[{nameof(GenerateExitSignalsStep<TContext>)}] Started generating exit signals for {context.openPositions.Count} open positions");
         
             var marketDataProvider = serviceProvider.GetRequiredService<IMarketDataProvider>();
             var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
@@ -46,7 +45,7 @@ namespace QuantAssembly.BackTesting
                     exitSignal == SignalType.StopLoss ||
                     exitSignal == SignalType.TakeProfit)
                 {
-                    logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Exit conditions met for position: {position}, signalType: {exitSignal}");
+                    logger.LogInfo($"[{nameof(GenerateExitSignalsStep<TContext>)}] Exit conditions met for position: {position}, signalType: {exitSignal}");
                     exitSignals.Add(new Signal
                     {
                         Type = exitSignal,
@@ -55,10 +54,9 @@ namespace QuantAssembly.BackTesting
                         MarketData = marketData,
                         IndicatorData = indicatorData
                     });
-                    // TODO: Updatebacktest report
                 }
             }
-            logger.LogInfo($"[{nameof(GenerateExitSignalsStep)}] Generated {exitSignals.Count} exit signals for {context.openPositions.Count} open positions");
+            logger.LogInfo($"[{nameof(GenerateExitSignalsStep<TContext>)}] Generated {exitSignals.Count} exit signals for {context.openPositions.Count} open positions");
             context.signals.AddRange(exitSignals);
         }
 

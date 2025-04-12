@@ -1,34 +1,35 @@
-using Microsoft.Extensions.DependencyInjection;
-using QuantAssembly.BackTesting.Models;
-using QuantAssembly.Common.Config;
-using QuantAssembly.Common.Ledger;
+using QuantAssembly.Common.Models;
+using QuantAssembly.Core.Models;
+using QuantAssembly.Core.DataProvider;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Pipeline;
-using QuantAssembly.Core.DataProvider;
-using QuantAssembly.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
+using QuantAssembly.Common.Config;
 using QuantAssembly.Core.Strategy;
-using QuantAssembly.DataProvider;
+using QuantAssembly.Common.Ledger;
 
-namespace QuantAssembly.BackTesting
+namespace QuantAssembly.Core.Pipeline
 {
+
     [PipelineStep]
-    [PipelineStepInput(nameof(BacktestContext.symbolsToEvaluate))]
-    [PipelineStepOutput(nameof(BacktestContext.signals))]
-    public class GenerateEntrySignalsStep : IPipelineStep<BacktestContext>
+    [PipelineStepInput(nameof(QuantContext.symbolsToEvaluate))]
+    [PipelineStepOutput(nameof(QuantContext.signals))]
+    public class GenerateEntrySignalsStep<TContext> : IPipelineStep<TContext> where TContext : QuantContext, new()
     {
-        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig config)
+        public async Task Execute(TContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             var strategyProcessor = serviceProvider.GetRequiredService<IStrategyProcessor>();
+            var logger = serviceProvider.GetService<ILogger>();
             if (strategyProcessor == null)
             {
-                throw new PipelineException($"[{nameof(GenerateEntrySignalsStep)}] StrategyProcessor is not initialized in the context");
+                throw new PipelineException($"[{nameof(GenerateEntrySignalsStep<TContext>)}] StrategyProcessor is not initialized in the context");
             }
             if (!context.symbolsToEvaluate?.Any() ?? false)
             {
+                logger.LogInfo($"[{nameof(GenerateEntrySignalsStep<TContext>)}] There are no symbols to evaluate and generate entry signals for");
                 return;
             }
-            var logger = serviceProvider.GetService<ILogger>();
-            logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Started generating entry signals");
+            logger.LogInfo($"[{nameof(GenerateEntrySignalsStep<TContext>)}] Started generating entry signals");
 
             var marketDataProvider = serviceProvider.GetService<IMarketDataProvider>();
             var IndicatorDataProvider = serviceProvider.GetRequiredService<IIndicatorDataProvider>();
@@ -43,7 +44,7 @@ namespace QuantAssembly.BackTesting
                 var signalType = strategyProcessor.EvaluateOpenSignal(marketData, context.accountData, histData, symbol);
                 if (signalType == SignalType.Entry)
                 {
-                    logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Entry conditions for symbol: {symbol} met");
+                    logger.LogInfo($"[{nameof(GenerateEntrySignalsStep<TContext>)}] Entry conditions for symbol: {symbol} met");
                     entrySignals.Add(new Signal
                     {
                         SymbolName = symbol,
@@ -54,7 +55,7 @@ namespace QuantAssembly.BackTesting
                 }
             }
             context.signals.AddRange(entrySignals);
-            logger.LogInfo($"[{nameof(GenerateEntrySignalsStep)}] Successfully generated {entrySignals.Count} entry signals");
+            logger.LogInfo($"[{nameof(GenerateEntrySignalsStep<TContext>)}] Successfully generated {entrySignals.Count} entry signals");
         }
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
-using QuantAssembly.BackTesting.Models;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
 using QuantAssembly.Common.Models;
@@ -9,14 +8,14 @@ using QuantAssembly.Core.Models;
 using QuantAssembly.Core.RiskManagement;
 using QuantAssembly.Core.Strategy;
 
-namespace QuantAssembly.BackTesting
+namespace QuantAssembly.Core.Pipeline
 {
     [PipelineStep]
-    [PipelineStepInput(nameof(BacktestContext.signals))]
-    [PipelineStepOutput(nameof(BacktestContext.positionsToOpen))]
-    public class RiskManagementStep : IPipelineStep<BacktestContext>
+    [PipelineStepInput(nameof(QuantContext.signals))]
+    [PipelineStepOutput(nameof(QuantContext.positionsToOpen))]
+    public class RiskManagementStep<TContext> : IPipelineStep<TContext> where TContext : QuantContext, new()
     {
-        public async Task Execute(BacktestContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
+        public async Task Execute(TContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             if (context.signals == null || !context.signals.Any())
             {
@@ -31,7 +30,7 @@ namespace QuantAssembly.BackTesting
                     var position = PrepareOpenPosition(strategyProcessor, signal.SymbolName, signal.MarketData);
                     if (!riskManager.ComputePositionSize(signal.MarketData, signal.IndicatorData, context.accountData, position))
                     {
-                        logger.LogInfo($"[{nameof(RiskManagementStep)}] Appropriate resources not available to open position:\n {position}");
+                        logger.LogInfo($"[{nameof(RiskManagementStep<TContext>)}] Appropriate resources not available to open position:\n {position}");
                     }
 
                     return position;
