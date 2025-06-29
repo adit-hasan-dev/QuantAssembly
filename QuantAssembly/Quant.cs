@@ -14,7 +14,7 @@ using QuantAssembly.Core.Models;
 
 namespace QuantAssembly
 {
-    public class Quant : TradingEngine<Config>
+    public class Quant : TradingEngine
     {
         private bool shouldTerminate;
         private int pollingIntervalInMs;

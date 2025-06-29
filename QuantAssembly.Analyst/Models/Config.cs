@@ -13,17 +13,30 @@ namespace QuantAssembly.Analyst.Models
 
     public class CompanyDataFilterConfig
     {
-        public int? minimumCompanyAge { get; set; }
-        public int? maximumCompanyAge { get; set; }
-        public double? minimumMarketCap { get; set; }
-        public List<string> sectors { get; set; } = new List<string>();
-        public List<string> subIndustries { get; set; } = new List<string>();
+        public double? MinimumMarketCap { get; set; }
+        public double? MaximumMarketCap { get; set; }
+        public List<string> Sectors { get; set; } = new();
+        public double? MinimumPERatio { get; set; }
+        public double? MaximumPERatio { get; set; }
+
+        public double? MinimumDividendYield { get; set; }
+        public double? MaximumDividendYield { get; set; }
+
+        public double? MinimumEPS { get; set; }
+        public double? MaximumEPS { get; set; }
+
+        public double? MinimumPriceToSalesRatio { get; set; }
+        public double? MaximumPriceToSalesRatio { get; set; }
+
+        public double? MinimumPriceToBookRatio { get; set; }
+        public double? MaximumPriceToBookRatio { get; set; }
     }
+
 
     public class IndicatorFilterConfig
     {
-        public double? RSIOversoldThreshold { get; set; } // Default: Oversold threshold
-        public double? RSIOverboughtThreshold { get; set; } // Default: Overbought threshold
+        public double? RSIOversoldThreshold { get; set; }
+        public double? RSIOverboughtThreshold { get; set; }
     }
 
     public class OptionsContractFilterConfig
@@ -47,7 +60,8 @@ namespace QuantAssembly.Analyst.Models
 
     public class EmailPublishConfig
     {
-        public string EmailAddress { get; set; }
+        public string SourceEmailAddress { get; set; }
+        public string DestinationEmailAddress { get; set; }
         public string AppPassword { get; set; }
         public string SmtpServer { get; set; }
         public int SmtpPort { get; set; }

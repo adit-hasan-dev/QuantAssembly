@@ -17,33 +17,76 @@ As an input, you will be given a json array where each element contains informat
 ```
 
 ## Analysis
-Evaluate each options contract based on profitability, risk profile, and anticipated value changes. Create an investment plan for {{ $totalCapital }} USD, ensuring the total risk percentage does **not** exceed {{ $riskTolerance }} %. Select up to 5 options contracts that maximize profitability and minimize risk, aiming to hold them until their market value reaches a specified profit level. Determine the optimal quantity to buy for each contract, and for each, specify a take profit and stop loss level. The plan must allocate capital to maximize profit probability and minimize losses. Optimize for faster achievement of the target profit unless it negatively impacts profitability or risk.
 
-Use both quantitative and qualitative analysis, prioritizing quantitative metrics. When comparing contracts with similar profit potential, choose the cheaper one. Ensure the recommended contracts are diversified and apply advanced risk minimization techniques. Base all decisions strictly on the provided data, avoiding unnecessary assumptions.
+Evaluate each options contract based on profitability, risk profile, and anticipated value changes. Create an investment plan for {{ $totalCapital }} USD, ensuring the sum of the maximum loss of all recommended contracts does **not** exceed {{ $riskTolerance }} USD. Select up to 5 options contracts that together maximize expected profitability while minimizing risk, and specify realistic take profit and stop loss levels for each.
+
+The plan must allocate capital efficiently to maximize profit probability and protect capital. Optimize for achieving the target profit sooner if possible, but never at the expense of violating the total capital or risk rules.
+
+Use both quantitative and qualitative analysis, with priority on quantitative metrics. When comparing contracts with similar expected profit, prefer the cheaper one if all else is equal. Diversify across contracts when appropriate and apply advanced risk control methods. Base all decisions strictly on the input data provided — do not invent extra assumptions.
+
+---
+
+## Capital Allocation Rule & Required Plugin Usage
+
+You MUST use the **MathPlugin** for *all* numeric calculations during your analysis.  
+The `OptionsMathPlugin` provides these trusted functions:
+
+- `calculate_contract_cost`: Computes the capital required for a single options contract position using the formula: **Ask Price × 100 × Quantity**.
+- `calculate_total_invested`: Computes the total capital invested across all recommended contracts by summing the results of `calculate_contract_cost` for each one.
+- `calculate_max_profit`: Computes the maximum profit for a contract position using the formula: **(Take Profit Level − Ask Price) × 100 × Quantity**.
+- `calculate_max_loss`: Computes the maximum loss for a contract position using the formula: **(Ask Price − Stop Loss Level) × 100 × Quantity**.
+- `calculate_total_max_profit`: Computes the total maximum profit for all recommended contracts by summing individual maximum profits.
+- `calculate_total_max_loss`: Computes the total maximum loss for all recommended contracts by summing individual maximum losses.
+
+
+### When to use the plugin
+
+- For **each contract**, you MUST use:
+  - `calculate_contract_cost` to get its capital cost,
+  - `calculate_max_profit` to get its max profit,
+  - `calculate_max_loss` to get its max loss.
+
+- For the **entire basket**, you MUST use:
+  - `calculate_total_invested` to get the total invested capital,
+  - `calculate_total_max_profit` to get total maximum profit,
+  - `calculate_total_max_loss` to get total maximum loss.
+
+### You MUST ensure:
+- The **total invested capital** does NOT exceed **{{ $totalCapital }} USD**.
+- The calculated **total maximum loss** must respect the allowed risk ceiling of **{{ $riskTolerance }} USD** of total capital.
+- If the total exceeds the limit, you MUST adjust contract quantities or remove contracts.
+- If no valid combination exists that satisfies these rules, you MUST respond with exactly:  
+  **“No suitable contracts found under the given constraints.”**
+
+**Do NOT skip, approximate, or replace these plugin calculations.** Use only the plugin functions to do all math described above — no freehand calculations are allowed.  
+This ensures every recommendation is mathematically valid.
+
+These rules apply to every contract in your final recommendation list.
+
+---
 
 ## Output 
-Instead of acknowledging the instructions, begin your answer immedieately. If there are no appropriate contracts to invest in, state that outcome. Otherwise use the following output instructions.
+Do not respond in a way that acknowledges the prompt. You must simply follow the prompt. If there are no appropriate contracts to invest in, state that outcome. Otherwise use the following output instructions.
 
 Your answer **must** include:
-1. A summary of the overall analysis
-2. A step by step reasoning section detailing key considerations.
-3. The list of candidates you have chosen. For each candidate, you **must** explain your reasoning and refer to real data provided when justifying your choices.
-4. A table of the recommended contracts to buy. The table **must** contain the following columns:
-   1. Contract Symbol
-   2. Underlying asset symbol
-   3. Underlying asset latest price
-   4. Strike Price
-   5. Recommended quantity to buy
-   6. Expiration Date
-   7. Ask Price
-   8. Bid Price
-   9. Open Interest
-   10. Implied Volatility
-   11. Take profit level
-   12. Stop loss level
-   13. Total cost
-
-Finally, you will provide a summary of the maximum total profit and maximum total risk in both percentage and dollar value, if one decides to follow your recommendations, assume the user has {{ $totalCapital }} USD maximum to invest.
+1. A summary of the overall analysis of **all** contracts you have chosen, including but not limited to, what strategy you used to construct the basket of contracts to buy so the basket as a whole satisfies all requirements stated thus far.
+2. A list of the options contracts you have chosen to recommend buying. For each of the contracts, include the following:
+   1. A step by step reasoning section detailing key considerations. You **must** explain your reasoning and refer to real data provided to you when justifying your choices. Include explanations of the take profit, stop loss levels and the quantity you chose and how they adhere to the capital allocation and risk tolerance rules.
+   2. A summary of risks for the contract
+   3. Contract Symbol
+   4. Contract type
+   5. Underlying asset symbol
+   6. Underlying asset latest price
+   7. Strike Price
+   8. Recommended quantity of contracts to buy
+   9. Expiration Date
+   10. Contract Ask Price
+   11. Contract Bid Price
+   12. Open Interest
+   13. Implied Volatility
+   14. Take profit level
+   15. Stop loss level
+   16. Total capital invested for contract recommendation
 
 ## User Input
 

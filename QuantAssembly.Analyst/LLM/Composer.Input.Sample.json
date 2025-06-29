@@ -1,0 +1,43 @@
+{
+    "AnalysisSummary": "The analysis indicates strong upward trends in selected tech and semiconductor stocks with moderate risk.",
+    "TotalInvestmentAmount": 12500.50,
+    "MaximumReturn": 5800.00,
+    "MaximumRisk": 2200.00,
+    "RecommendedOptionsContracts": [
+      {
+        "ContractSymbol": "AAPL230920C00145000",
+        "ContractType": "Call",
+        "Reasoning": "Strong earnings momentum and technical breakout.",
+        "Risks": "Volatility due to upcoming product launch.",
+        "UnderlyingAssetSymbol": "AAPL",
+        "UnderlyingAssetLatestPrice": "145.00",
+        "StrikePrice": "145",
+        "RecommendedQuantityToBuy": 2,
+        "ExpirationDate": "2023-09-20",
+        "AskPrice": "3.50",
+        "BidPrice": "3.40",
+        "OpenInterest": "1200",
+        "ImpliedVolatility": "0.35",
+        "TakeProfitLevel": 6.50,
+        "StopLossLevel": 2.00
+      },
+      {
+        "ContractSymbol": "NVDA230920C00400000",
+        "ContractType": "Call",
+        "Reasoning": "Benefitting from AI chip demand surge.",
+        "Risks": "Sector rotation could limit upside.",
+        "UnderlyingAssetSymbol": "NVDA",
+        "UnderlyingAssetLatestPrice": "400.00",
+        "StrikePrice": "400",
+        "RecommendedQuantityToBuy": 1,
+        "ExpirationDate": "2023-09-20",
+        "AskPrice": "10.00",
+        "BidPrice": "9.80",
+        "OpenInterest": "800",
+        "ImpliedVolatility": "0.40",
+        "TakeProfitLevel": 16.00,
+        "StopLossLevel": 7.00
+      }
+    ]
+  }
+  

@@ -2,12 +2,13 @@ using Microsoft.Extensions.DependencyInjection;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Ledger;
 using QuantAssembly.Common.Logging;
+using QuantAssembly.Core.Models;
 
 namespace QuantAssembly.Core
 {
-    public abstract class TradingEngine<TConfig> where TConfig : BaseConfig
+    public abstract class TradingEngine
     {
-        protected readonly TConfig config;
+        protected readonly Config config;
         protected ILogger logger;
         protected ILedger ledger;
         protected ServiceProvider serviceProvider;
@@ -15,7 +16,7 @@ namespace QuantAssembly.Core
 
         public TradingEngine()
         {
-            this.config = ConfigurationLoader.LoadConfiguration<TConfig>();
+            this.config = ConfigurationLoader.LoadConfiguration<Config>();
             var services = new ServiceCollection();
             InitializeCoreDependencies(services);
             InitializeDependencies(services);

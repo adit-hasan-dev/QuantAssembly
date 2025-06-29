@@ -1,5 +1,6 @@
 using Markdig;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using QuantAssembly.Analyst.Service;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Logging;
@@ -8,26 +9,24 @@ using QuantAssembly.Common.Pipeline;
 namespace QuantAssembly.Analyst
 {
     [PipelineStep]
-    [PipelineStepInput(nameof(AnalystContext.composedOutput))]
+    [PipelineStepInput(nameof(AnalystContext.analystFinalOutput))]
     public class PublishStep : IPipelineStep<AnalystContext>
     {
         private const string reportEmailSubject = "QuantAssembly Analyst Options Report {0}";
         public async Task Execute(AnalystContext context, ServiceProvider serviceProvider, BaseConfig baseConfig)
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.LogInfo($"[{nameof(PublishStep)}] Publishing final output");
             var config = baseConfig as Models.Config;
-            var emailAddress = config.emailPublishConfig.EmailAddress;
-            var emailService = new EmailService(config.emailPublishConfig.SmtpServer, config.emailPublishConfig.SmtpPort, emailAddress, config.emailPublishConfig.AppPassword, logger);
+            logger.LogInfo($"[{nameof(PublishStep)}] Publishing final output");
 
-            logger.LogInfo($"[{nameof(PublishStep)}] Sending email with final output to {emailAddress}");
+            // Render final output to HTML
+            logger.LogInfo($"[{nameof(PublishStep)}] Rendering final output to HTML");
             var pipeline = new MarkdownPipelineBuilder()
                 .UseAdvancedExtensions()
                 .UsePipeTables()
                 .UseTaskLists()
                 .UseFigures()
                 .Build();
-
             string htmlBody = $@"
 <html>
 <head>
@@ -45,12 +44,22 @@ namespace QuantAssembly.Analyst
     </style>
 </head>
 <body>
-    {Markdown.ToHtml(context.composedOutput, pipeline)}
+    {Markdown.ToHtml(context.composedFinalOutput, pipeline)}
 </body>
 </html>";
+            
+            // Save to disk
+            string fileName = $"{config!.OutputFilePath}/OptionsReport_{DateTime.UtcNow:yyyy-MM-ddTHH}.html";
+            File.WriteAllText(fileName, htmlBody);
+            logger.LogInfo($"[{nameof(PublishStep)}] Successfully saved final output to {fileName}");
 
+            // Publish to email
+            var emailAddress = config.emailPublishConfig.SourceEmailAddress;
+            var emailService = new EmailService(config.emailPublishConfig.SmtpServer, config.emailPublishConfig.SmtpPort, emailAddress, config.emailPublishConfig.AppPassword, logger);
+
+            logger.LogInfo($"[{nameof(PublishStep)}] Sending email with final output to {emailAddress}");
             string emailSubject = string.Format(reportEmailSubject, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
-            await emailService.SendEmailAsync(emailAddress, emailSubject, htmlBody);
+            await emailService.SendEmailAsync(config.emailPublishConfig.DestinationEmailAddress, emailSubject, htmlBody);
             logger.LogInfo($"[{nameof(PublishStep)}] Successfully published final output to {emailAddress}");
         }
     }

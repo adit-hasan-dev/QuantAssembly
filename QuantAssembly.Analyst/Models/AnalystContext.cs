@@ -17,6 +17,7 @@ namespace QuantAssembly.Analyst
         public List<IndicatorData> indicatorData { get; set; } = new List<IndicatorData>();
         public List<OptionsContractData> optionsContractData { get; set; } = new List<OptionsContractData>();
         public List<CandidateData> candidates { get; set; } = new List<CandidateData>();
-        public string composedOutput { get; set; } = string.Empty;
+        public AnalystFinalOutput analystFinalOutput { get; set; }
+        public string composedFinalOutput { get; set; } = string.Empty;
     }
 }

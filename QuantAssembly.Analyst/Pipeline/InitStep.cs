@@ -17,63 +17,121 @@ namespace QuantAssembly.Analyst
     [PipelineStepOutput(nameof(AnalystContext.companies))]
     public class InitStep : IPipelineStep<AnalystContext>
     {
-        private const string csvUrl = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/refs/heads/main/data/constituents.csv";
+        private const string csvUrl = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies-financials/refs/heads/main/data/constituents-financials.csv";
+
         public async Task Execute(AnalystContext context, ServiceProvider serviceProvider, BaseConfig config)
         {
             var logger = serviceProvider.GetRequiredService<ILogger>();
-            logger.LogInfo($"[{nameof(InitStep)}] Calling API to retrieve company data for S&P500");
-            
+            logger.LogInfo($"[{nameof(InitStep)}] Downloading extended S&P 500 company data");
+
             var analystConfig = config as Models.Config;
             var companyDataFilterConfig = analystConfig.companyDataFilterConfig;
             List<Company> companies = new List<Company>();
+
             using (var httpClient = new HttpClient())
             using (var response = await httpClient.GetAsync(csvUrl))
             using (var reader = new StreamReader(response.Content.ReadAsStream()))
             {
                 var csvConfig = new CsvConfiguration(CultureInfo.InvariantCulture)
                 {
+                    HeaderValidated = null,
+                    MissingFieldFound = null,
                     PrepareHeaderForMatch = args => args.Header
                         .Replace(" ", string.Empty)
-                        .Replace("-", string.Empty),
+                        .Replace("-", string.Empty)
+                        .Replace("/", string.Empty),
                 };
+
                 var csv = new CsvReader(reader, csvConfig);
-                companies = csv.GetRecords<Company>()
-                    .ToList();
+
+                await csv.ReadAsync();
+                csv.ReadHeader();
+
+                while (await csv.ReadAsync())
+                {
+                    try
+                    {
+                        var company = new Company
+                        {
+                            Symbol = csv.GetField("Symbol"),
+                            Name = csv.GetField("Name"),
+                            Sector = csv.GetField("Sector"),
+                            Price = ParseDouble(csv.GetField("Price")),
+                            PriceToEarningsRatio = ParseDouble(csv.GetField("P/E")),
+                            DividendYield = ParseDouble(csv.GetField("Dividend %")),
+                            EarningsPerShare = ParseDouble(csv.GetField("EPS")),
+                            YearlyLow = ParseDouble(csv.GetField("52 Week Low")),
+                            YearlyHigh = ParseDouble(csv.GetField("52 Week High")),
+                            MarketCap = ParseMarketCap(csv.GetField("Market Cap")),
+                            EBITDA = ParseDouble(csv.GetField("EBITDA")),
+                            PriceToSalesRatio = ParseDouble(csv.GetField("Price/Sales")),
+                            PriceToBookRatio = ParseDouble(csv.GetField("Price/Book")),
+                            SECFilings = csv.GetField("SEC Filings")
+                        };
+
+                        companies.Add(company);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogWarn($"Skipping row due to parse error: {ex.Message}");
+                    }
+                }
             }
-            logger.LogInfo($"[{nameof(InitStep)}] Retrieve company data for {companies.Count} companies");
 
-            int minAge = companyDataFilterConfig.minimumCompanyAge ?? 0;
-            int maxAge = companyDataFilterConfig.maximumCompanyAge ?? 1000;
-            companies = companies.Where(c => {
-                int foundedYear = ParseFoundedYear(c.Founded);
-                int age = DateTime.UtcNow.Year - foundedYear;
-                return age >= minAge && age <= maxAge;
-            }).ToList();
+            logger.LogInfo($"[{nameof(InitStep)}] Parsed {companies.Count} companies from CSV.");
 
-            // Leaving the sectors and/or subIndustries empty means no filtering by these fields.
-            if (companyDataFilterConfig.sectors.Any())
+            // Apply all configured filters
+            companies = companies.Where(c =>
+                (companyDataFilterConfig.MinimumMarketCap == null || c.MarketCap >= companyDataFilterConfig.MinimumMarketCap) &&
+                (companyDataFilterConfig.MaximumMarketCap == null || c.MarketCap <= companyDataFilterConfig.MaximumMarketCap) &&
+
+                (companyDataFilterConfig.MinimumPERatio == null || c.PriceToEarningsRatio >= companyDataFilterConfig.MinimumPERatio) &&
+                (companyDataFilterConfig.MaximumPERatio == null || c.PriceToEarningsRatio <= companyDataFilterConfig.MaximumPERatio) &&
+
+                (companyDataFilterConfig.MinimumDividendYield == null || c.DividendYield >= companyDataFilterConfig.MinimumDividendYield) &&
+                (companyDataFilterConfig.MaximumDividendYield == null || c.DividendYield <= companyDataFilterConfig.MaximumDividendYield) &&
+
+                (companyDataFilterConfig.MinimumEPS == null || c.EarningsPerShare >= companyDataFilterConfig.MinimumEPS) &&
+                (companyDataFilterConfig.MaximumEPS == null || c.EarningsPerShare <= companyDataFilterConfig.MaximumEPS) &&
+
+                (companyDataFilterConfig.MinimumPriceToSalesRatio == null || c.PriceToSalesRatio >= companyDataFilterConfig.MinimumPriceToSalesRatio) &&
+                (companyDataFilterConfig.MaximumPriceToSalesRatio == null || c.PriceToSalesRatio <= companyDataFilterConfig.MaximumPriceToSalesRatio) &&
+
+                (companyDataFilterConfig.MinimumPriceToBookRatio == null || c.PriceToBookRatio >= companyDataFilterConfig.MinimumPriceToBookRatio) &&
+                (companyDataFilterConfig.MaximumPriceToBookRatio == null || c.PriceToBookRatio <= companyDataFilterConfig.MaximumPriceToBookRatio)
+            ).ToList();
+
+            if (companyDataFilterConfig.Sectors.Any())
             {
-                companies = companies.Where(c => companyDataFilterConfig.sectors.Contains(c.GICSSector)).ToList();
+                companies = companies.Where(c => companyDataFilterConfig.Sectors.Contains(c.Sector)).ToList();
             }
 
-            if (companyDataFilterConfig.subIndustries.Any())
-            {
-                companies = companies.Where(c => companyDataFilterConfig.subIndustries.Contains(c.GICSSubIndustry)).ToList();
-            }
             context.companies = companies;
-            logger.LogInfo($"[{nameof(InitStep)}] After filtration, {companies.Count} companies are remaining.");
+            logger.LogInfo($"[{nameof(InitStep)}] After filtration, {companies.Count} companies remain.");
         }
 
-        private int ParseFoundedYear(string foundedField)
+        private double ParseDouble(string input)
         {
-            // The field might be a simple year like "1902" or a combination like "2013 (1888)".
-            // Here we extract the first 4-digit number.
-            var digits = new string(foundedField.Where(char.IsDigit).ToArray());
-            if (digits.Length >= 4 && int.TryParse(digits.Substring(0, 4), out int year))
-            {
-                return year;
-            }
-            return DateTime.Now.Year; // Fallback if parsing fails.
+            return double.TryParse(input?.Replace("%", "").Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var value)
+                ? value
+                : 0;
+        }
+
+        private double ParseMarketCap(string marketCapStr)
+        {
+            if (string.IsNullOrWhiteSpace(marketCapStr)) return 0;
+
+            marketCapStr = marketCapStr.Trim().ToUpperInvariant();
+
+            if (marketCapStr.EndsWith("B") && double.TryParse(marketCapStr[..^1], out var b))
+                return b * 1_000_000_000;
+            if (marketCapStr.EndsWith("M") && double.TryParse(marketCapStr[..^1], out var m))
+                return m * 1_000_000;
+            if (marketCapStr.EndsWith("T") && double.TryParse(marketCapStr[..^1], out var t))
+                return t * 1_000_000_000_000;
+
+            return double.TryParse(marketCapStr, out var raw) ? raw : 0;
         }
     }
+
 }

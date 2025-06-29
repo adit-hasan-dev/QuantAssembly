@@ -3,16 +3,16 @@ using QuantAssembly.Common.Config;
 
 namespace QuantAssembly.Core.Models
 {
+    /// <summary>
+    ///  consolidate config for quantassembly
+    /// </summary>
     public class Config : BaseConfig
     { 
-        public string AccountId { get; } 
-        public bool EnableDebugLog { get; } 
-        public string LogFilePath { get; } 
-        public string CacheFolderPath { get; }
-        public Dictionary<string, string> TickerStrategyMap { get; } 
-        public int PollingIntervalInMs { get; } 
-        public RiskManagementConfig RiskManagement { get; } 
-        public Dictionary<string, JObject> CustomProperties { get; } 
+        public string AccountId { get; init; } 
+        public string CacheFolderPath { get; init; }
+        public Dictionary<string, string> TickerStrategyMap { get; init; } 
+        public int PollingIntervalInMs { get; init; } 
+        public RiskManagementConfig RiskManagement { get; init; } 
 
     }
 }

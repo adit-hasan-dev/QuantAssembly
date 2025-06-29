@@ -1,0 +1,118 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "AnalystFinalOutput",
+    "description": "Contains the final options trading analysis and recommended trades.",
+    "type": "object",
+    "properties": {
+      "AnalysisSummary": {
+        "type": "string",
+        "description": "A brief summary of the overall analysis and insights."
+      },
+      "TotalInvestmentAmount": {
+        "type": "number",
+        "description": "The total amount to be invested across all recommended option contracts (in USD)."
+      },
+      "MaximumReturn": {
+        "type": "number",
+        "description": "The maximum possible profit if all trades reach their take profit levels."
+      },
+      "MaximumRisk": {
+        "type": "number",
+        "description": "The maximum possible loss if all trades reach their stop loss levels."
+      },
+      "RecommendedOptionsContracts": {
+        "type": "array",
+        "description": "A list of recommended option contracts to buy, including trade reasoning and risk notes.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "ContractSymbol": {
+              "type": "string",
+              "description": "The unique symbol identifying this option contract."
+            },
+            "ContractType": {
+              "type": "string",
+              "description": "Type of option contract, e.g., Call or Put."
+            },
+            "Reasoning": {
+              "type": "string",
+              "description": "The rationale behind recommending this contract."
+            },
+            "Risks": {
+              "type": "string",
+              "description": "Potential risks or uncertainties associated with this contract."
+            },
+            "UnderlyingAssetSymbol": {
+              "type": "string",
+              "description": "The stock symbol of the underlying asset for this option."
+            },
+            "UnderlyingAssetLatestPrice": {
+              "type": "string",
+              "description": "The most recent market price of the underlying asset."
+            },
+            "StrikePrice": {
+              "type": "string",
+              "description": "The strike price for the option contract."
+            },
+            "RecommendedQuantityToBuy": {
+              "type": "integer",
+              "description": "The number of contracts recommended for purchase."
+            },
+            "ExpirationDate": {
+              "type": "string",
+              "description": "The expiration date for the option contract."
+            },
+            "AskPrice": {
+              "type": "string",
+              "description": "The current ask price of the option contract."
+            },
+            "BidPrice": {
+              "type": "string",
+              "description": "The current bid price of the option contract."
+            },
+            "OpenInterest": {
+              "type": "string",
+              "description": "The open interest for this option contract."
+            },
+            "ImpliedVolatility": {
+              "type": "string",
+              "description": "The implied volatility for this option contract."
+            },
+            "TakeProfitLevel": {
+              "type": "number",
+              "description": "The target option price to sell at for taking profit."
+            },
+            "StopLossLevel": {
+              "type": "number",
+              "description": "The option price to sell at to limit losses."
+            }
+          },
+          "required": [
+            "ContractSymbol",
+            "ContractType",
+            "Reasoning",
+            "Risks",
+            "UnderlyingAssetSymbol",
+            "UnderlyingAssetLatestPrice",
+            "StrikePrice",
+            "RecommendedQuantityToBuy",
+            "ExpirationDate",
+            "AskPrice",
+            "BidPrice",
+            "OpenInterest",
+            "ImpliedVolatility",
+            "TakeProfitLevel",
+            "StopLossLevel"
+          ]
+        }
+      }
+    },
+    "required": [
+      "AnalysisSummary",
+      "TotalInvestmentAmount",
+      "MaximumReturn",
+      "MaximumRisk",
+      "RecommendedOptionsContracts"
+    ]
+  }
+  

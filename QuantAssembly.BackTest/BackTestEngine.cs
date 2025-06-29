@@ -22,10 +22,12 @@ namespace QuantAssembly.BackTesting
 {
     public class BacktestConfig
     {
-        public double InitialPortfolioValue { get; set; }
-
+        public double InitialPortfolioValue { get; init; }
+        public TimePeriod timePeriod { get; init; } = TimePeriod.OneYear;
+        public StepSize stepSize { get; init; } = StepSize.OneHour;
     }
-    public class BackTestEngine : TradingEngine<Config>
+
+    public class BackTestEngine : TradingEngine
     {
         private const TimePeriod timePeriod = TimePeriod.OneYear;
         private const StepSize stepSize = StepSize.ThirtyMinutes;
@@ -70,6 +72,15 @@ namespace QuantAssembly.BackTesting
         protected override void InitializeDependencies(ServiceCollection services)
         {
             this.logger.LogInfo($"[{nameof(BackTestEngine)}] Initializing dependencies");
+            if (config.CustomProperties.TryGetValue(nameof(BacktestConfig), out var backTestConfigJson))
+            {
+                this.backtestConfig = JsonConvert.DeserializeObject<BacktestConfig>(backTestConfigJson.ToString()) ?? new BacktestConfig();
+            }
+            else
+            {
+                throw new InvalidOperationException($"Configuration for {nameof(BacktestConfig)} not found.");
+            }
+
             services
             .AddSingleton<AlpacaMarketsClient>(provider =>
             {
@@ -111,15 +122,6 @@ namespace QuantAssembly.BackTesting
             })
             .AddSingleton<IAccountDataProvider, BacktestAccountDataProvider>(provider =>
             {
-                var customProperties = config.CustomProperties;
-                if (customProperties.TryGetValue(typeof(BacktestConfig).Name, out var configObject))
-                {
-                    this.backtestConfig = configObject?.ToObject<BacktestConfig>() ?? new();
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Configuration for {typeof(BacktestConfig).Name} not found.");
-                }
                 return new BacktestAccountDataProvider(config.AccountId, this.backtestConfig.InitialPortfolioValue);
             })
             .AddSingleton<ITradeManager, BacktestTradeManager>(provider =>

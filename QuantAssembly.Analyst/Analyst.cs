@@ -1,13 +1,7 @@
-using System.Globalization;
-using System.Reflection.Metadata.Ecma335;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 using QuantAssembly.Analyst.DataProvider;
 using QuantAssembly.Analyst.LLM;
-using QuantAssembly.Analyst.Models;
 using QuantAssembly.Common;
 using QuantAssembly.Common.Config;
 using QuantAssembly.Common.Impl.AlpacaMarkets;
@@ -42,7 +36,6 @@ namespace QuantAssembly.Analyst
                 .AddStep<OptionsFilterStep>()
                 .AddStep<PreAIStep>()
                 .AddStep<LLMStep>()
-                .AddStep<PresentationStep>()
                 .AddStep<PublishStep>()
                 .Build();
 
